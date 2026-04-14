@@ -1,317 +1,249 @@
-// Poker Vision IoT - Game Logic & AI Integration
-let classifier;
-let imageModelURL = ''; // User will provide this
-let video;
-let label = "AGUARDANDO...";
-let confidence = 0;
-let isModelLoaded = false;
-
-// Game State
+// PO2 - Game Logic (No AI Version)
 let balance = 1000;
 let pot = 0;
-let currentBet = 0;
 let playerHand = [];
 let communityCards = [];
-let gameActive = false;
-let lastActionTime = 0;
-const ACTION_COOLDOWN = 2000; // 2 seconds between IA actions
+let activeGoldEffect = null;
+let activeEmeraldEffect = null;
+let isShieldActive = false;
+let isSafeActive = false;
 
-const SUITS = ['hearts', 'diamonds', 'clubs', 'spades'];
-const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-
-// Mock Antigravity Ecosystem
-const antigravity = {
-    publish: function(topic, data) {
-        console.log(`[IoT Cloud] Publicando em ${topic}:`, data);
-        showToast(`AI: ${data.move.toUpperCase()} registrado!`);
-        
-        // Simular efeito físico de LED
-        if (data.move === 'bet') {
-            const led = document.getElementById('led-green');
-            led.classList.add('active');
-            setTimeout(() => led.classList.remove('active'), 1000);
-        }
-    }
-};
+// Mock rivals for "King of Gold" effect
+const OTHER_PLAYERS_COUNT = 3;
 
 // UI Elements
 const balanceEl = document.getElementById('balance');
 const potEl = document.getElementById('pot-value');
-const currentBetEl = document.getElementById('current-bet');
-const playerActionIndicator = document.getElementById('player-action-indicator');
-const toastContainer = document.getElementById('toast-container');
-const setupModal = document.getElementById('setup-modal');
-const modelUrlInput = document.getElementById('model-url');
-const saveModelBtn = document.getElementById('save-model-btn');
-const startBtn = document.getElementById('start-btn');
+const playerArea = document.getElementById('player-cards');
+const communityArea = document.getElementById('community-cards');
+const logPanel = document.getElementById('action-log');
+const tutorialModal = document.getElementById('tutorial-modal');
+const closeTutorialBtn = document.getElementById('close-tutorial');
 
 // --- Initialization ---
 
-saveModelBtn.addEventListener('click', () => {
-    imageModelURL = modelUrlInput.value.trim();
-    if (imageModelURL) {
-        if (!imageModelURL.endsWith('/')) imageModelURL += '/';
-        setupModal.classList.add('hidden');
-        initGame();
+window.addEventListener('load', () => {
+    // Show tutorial on first load
+    if (!localStorage.getItem('po2_tutorial_seen')) {
+        tutorialModal.classList.remove('hidden');
     } else {
-        alert("Por favor, insira uma URL válida do Teachable Machine.");
+        tutorialModal.classList.add('hidden');
     }
+    initGame();
+});
+
+closeTutorialBtn.addEventListener('click', () => {
+    tutorialModal.classList.add('hidden');
+    localStorage.setItem('po2_tutorial_seen', 'true');
 });
 
 function initGame() {
-    updateUI();
     startNewRound();
+    updateUI();
 }
 
-async function loadModel() {
-    const modelURL = imageModelURL + 'model.json';
-    const metadataURL = imageModelURL + 'metadata.json';
-    
-    try {
-        classifier = await tmImage.load(modelURL, metadataURL);
-        isModelLoaded = true;
-        console.log("Modelo carregado com sucesso!");
-    } catch (e) {
-        console.error("Erro ao carregar modelo:", e);
-        showToast("Erro ao carregar o modelo. Verifique a URL.");
+// --- Poker Actions ---
+
+document.getElementById('check-btn').addEventListener('click', () => {
+    addLog("Você passou (Check).");
+    if (communityCards.length < 5) {
+        dealCommunity(1);
+    } else {
+        endRound(Math.random() > 0.4 ? "VENCER" : "PERDER");
     }
-}
+});
 
-// --- p5.js Webcam Functions ---
-
-function setup() {
-    const canvasContainer = document.getElementById('video-container');
-    const width = canvasContainer.offsetWidth;
-    const height = canvasContainer.offsetHeight;
+document.getElementById('bet-btn').addEventListener('click', () => {
+    let betAmount = 10;
     
-    // Create p5 canvas inside the container
-    const cnv = createCanvas(width, height);
-    cnv.parent('video-container');
-    
-    // Setup video
-    video = createCapture(VIDEO);
-    video.size(width, height);
-    video.hide();
-}
-
-function draw() {
-    image(video, 0, 0, width, height);
-    
-    if (isModelLoaded && frameCount % 10 === 0) { // Check every 10 frames
-        classifyVideo();
+    // Apply "Poison" if rival (simulated) forced double
+    if (activeEmeraldEffect === 'emerald_king') {
+        betAmount *= 2;
+        addLog("☣️ VENENO: Aposta dobrada para $20!");
+        activeEmeraldEffect = null;
     }
+
+    if (balance >= betAmount) {
+        balance -= betAmount;
+        pot += betAmount;
+        addLog(`Você apostou $${betAmount}.`);
+        updateUI();
+        
+        setTimeout(() => {
+            if (communityCards.length < 5) {
+                dealCommunity(1);
+            } else {
+                endRound(Math.random() > 0.4 ? "VENCER" : "PERDER");
+            }
+        }, 500);
+    }
+});
+
+document.getElementById('fold-btn').addEventListener('click', () => {
+    addLog("Você desistiu (Fold).");
+    startNewRound();
+});
+
+// --- Special Deck Mechanics ---
+
+function playSpecial(type) {
+    if (activeEmeraldEffect === 'emerald_ace' && type.startsWith('gold_')) {
+        addLog("🚫 PORTAL: Efeito de Ouro cancelado por Esmeralda!");
+        return;
+    }
+
+    switch(type) {
+        // GOLD DECK
+        case 'gold_jack': // The Collector
+            balance += 5;
+            addLog("🟡 COLETOR: +5 fichas adicionadas via Antigravity.");
+            break;
+        case 'gold_queen': // The Shield
+            isShieldActive = true;
+            addLog("🟡 ESCUDO: Ativado. -50% prejuízo se perder.");
+            break;
+        case 'gold_king': // The Tax
+            let tax = OTHER_PLAYERS_COUNT * 2;
+            balance += tax;
+            addLog(`🟡 IMPOSTO: Recebeu $${tax} dos outros jogadores.`);
+            break;
+        case 'gold_ace': // The Safe
+            isSafeActive = true;
+            addLog("🟡 COFRE: Invencível contra ataques de Esmeralda!");
+            break;
+
+        // EMERALD DECK
+        case 'emerald_jack': // The Spy
+            if (isSafeActive) {
+                addLog("🛡️ COFRE: Bloqueou o Espião!");
+                isSafeActive = false;
+            } else {
+                let highest = getHighestRank(communityCards);
+                addLog(`🟢 ESPIÃO: A maior carta na mesa é ${highest}.`);
+            }
+            break;
+        case 'emerald_queen': // The Illusion
+            if (playerHand.length > 0) {
+                playerHand[0] = { rank: Math.floor(Math.random()*10), suit: Math.floor(Math.random()*4) };
+                renderCards();
+                addLog("🟢 ILUSÃO: Uma de suas cartas foi trocada.");
+            }
+            break;
+        case 'emerald_king': // The Poison
+            activeEmeraldEffect = 'emerald_king';
+            addLog("🟢 VENENO: Lançado! Próxima aposta será 2x.");
+            break;
+        case 'emerald_ace': // The Portal
+            isSafeActive = false;
+            isShieldActive = false;
+            addLog("🟢 PORTAL: Todos os efeitos de Ouro anulados!");
+            break;
+    }
+    updateUI();
 }
 
-async function classifyVideo() {
-    const prediction = await classifier.predict(video.elt);
-    
-    // Sort predictions by probability
-    prediction.sort((a, b) => b.probability - a.probability);
-    
-    label = prediction[0].className;
-    confidence = prediction[0].probability;
-    
-    updateVisionUI();
-    handleAIAction(label, confidence);
-}
-
-// --- Game Logic ---
+// --- Core Helper Functions ---
 
 function startNewRound() {
-    gameActive = true;
     pot = 0;
-    currentBet = 0;
+    isShieldActive = false;
+    isSafeActive = false;
+    activeEmeraldEffect = null;
+    
     playerHand = [getRandomCard(), getRandomCard()];
     communityCards = [getRandomCard(), getRandomCard(), getRandomCard()];
     
     renderCards();
     updateUI();
-    showToast("Nova rodada iniciada!");
+    addLog("--- Nova Rodada ---");
+}
+
+function dealCommunity(count) {
+    for(let i=0; i<count; i++) communityCards.push(getRandomCard());
+    renderCards();
+    updateUI();
 }
 
 function getRandomCard() {
-    const suitIndex = Math.floor(Math.random() * 4);
-    const rankIndex = Math.floor(Math.random() * 13) + 1; // 1 to 13
-    return { suit: suitIndex, rank: rankIndex };
+    return { rank: Math.floor(Math.random() * 13), suit: Math.floor(Math.random() * 4) };
 }
 
-function handleAIAction(label, confidence) {
-    if (!gameActive) return;
+function getHighestRank(cards) {
+    if (cards.length === 0) return "Nenhuma";
+    const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+    let max = -1;
+    cards.forEach(c => { if(c.rank > max) max = c.rank; });
+    return ranks[max];
+}
+
+function endRound(result) {
+    if (result === "VENCER") {
+        let win = pot * 1.5;
+        balance += win;
+        showToast(`VOCÊ VENCEU! +$${Math.floor(win)}`);
+        addLog(`Vitória! Pot de $${pot} recolhido.`);
+    } else {
+        if (isShieldActive) {
+            let refund = pot / 2;
+            balance += refund;
+            addLog("🟡 ESCUDO: Reembolsou metade da perda!");
+        }
+        showToast("VOCÊ PERDEU!");
+        addLog("Derrota no Showdown.");
+    }
     
-    const now = Date.now();
-    if (now - lastActionTime < ACTION_COOLDOWN) return;
-
-    if (confidence > 0.9) {
-        if (label === "Aposta") {
-            processBet(10);
-            antigravity.publish("poker/mesa1/acao", { player: "User01", move: "bet", value: 10 });
-            lastActionTime = now;
-        } 
-        else if (label === "Desistir") {
-            processFold();
-            antigravity.publish("poker/mesa1/acao", { player: "User01", move: "fold" });
-            lastActionTime = now;
-        }
-        else if (label === "Passar/Check") {
-            processCheck();
-            antigravity.publish("poker/mesa1/acao", { player: "User01", move: "check" });
-            lastActionTime = now;
-        }
-    }
-}
-
-function processBet(amount) {
-    if (balance >= amount) {
-        balance -= amount;
-        pot += amount;
-        currentBet += amount;
-        playerActionIndicator.textContent = "APOSTOU $10";
-        playerActionIndicator.style.color = "#238636";
-        updateUI();
-        
-        // Auto-next phase after 2 seconds
-        setTimeout(() => {
-            if (communityCards.length < 5) {
-                communityCards.push(getRandomCard());
-                renderCards();
-                updateUI();
-            } else {
-                endRound("Você Ganhou!");
-            }
-        }, 1500);
-    }
-}
-
-function processFold() {
-    playerActionIndicator.textContent = "DESISTIU";
-    playerActionIndicator.style.color = "#da3633";
-    gameActive = false;
     setTimeout(startNewRound, 3000);
 }
 
-function processCheck() {
-    playerActionIndicator.textContent = "PASSOU (CHECK)";
-    playerActionIndicator.style.color = "#1f6feb";
+function renderCards() {
+    playerArea.innerHTML = '';
+    communityArea.innerHTML = '';
     
-    setTimeout(() => {
-        if (communityCards.length < 5) {
-            communityCards.push(getRandomCard());
-            renderCards();
-            updateUI();
-        } else {
-            endRound("Showdown!");
-        }
-    }, 1500);
+    playerHand.forEach(card => playerArea.appendChild(createCardUI(card)));
+    communityCards.forEach(card => communityArea.appendChild(createCardUI(card)));
 }
 
-function endRound(reason) {
-    gameActive = false;
-    showToast(`${reason} +$${pot}`);
-    balance += pot;
-    pot = 0;
-    updateUI();
-    setTimeout(startNewRound, 4000);
+function createCardUI(card) {
+    const el = document.createElement('div');
+    el.className = 'card';
+    
+    // Using simple mapping for the sprite positions
+    // This can be refined based on the exact image geometry
+    const x = (card.rank % 5) * 20; 
+    const y = (card.suit % 4) * 25;
+    
+    el.style.backgroundPosition = `${x}% ${y}%`;
+    return el;
 }
 
-// --- UI Rendering ---
+function addLog(msg) {
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    logPanel.prepend(entry);
+}
 
 function updateUI() {
     balanceEl.textContent = balance;
     potEl.textContent = pot;
-    currentBetEl.textContent = currentBet;
-}
-
-function updateVisionUI() {
-    document.getElementById('label-name').textContent = label.toUpperCase();
-    document.getElementById('confidence-value').textContent = Math.round(confidence * 100) + "%";
-    document.getElementById('confidence-bar').style.width = (confidence * 100) + "%";
-}
-
-function renderCards() {
-    const playerArea = document.getElementById('player-cards');
-    const communityArea = document.getElementById('community-cards');
-    
-    playerArea.innerHTML = '';
-    communityArea.innerHTML = '';
-    
-    playerHand.forEach(card => {
-        playerArea.appendChild(createCardElement(card));
-    });
-    
-    communityCards.forEach(card => {
-        communityArea.appendChild(createCardElement(card));
-    });
-}
-
-function createCardElement(card) {
-    const el = document.createElement('div');
-    el.className = 'card';
-    
-    // Spritesheet math:
-    // Background size is 1400% 400% (14 columns, 4 rows)
-    // Column 0 is Back, 1 is Ace, 2 is 2...
-    // Percentage for column X: X * (100 / (14 - 1)) = X * 7.69%
-    // Percentage for row Y: Y * (100 / (4 - 1)) = Y * 33.33%
-    
-    const posX = card.rank * (100 / 13);
-    const posY = card.suit * (100 / 3);
-    
-    el.style.backgroundPosition = `${posX}% ${posY}%`;
-    return el;
 }
 
 function showToast(msg) {
     const toast = document.createElement('div');
-    toast.className = 'toast';
+    toast.className = 'toast show';
     toast.textContent = msg;
-    toastContainer.appendChild(toast);
+    toast.style.position = 'fixed';
+    toast.style.top = '50%';
+    toast.style.left = '50%';
+    toast.style.transform = 'translate(-50%, -50%)';
+    toast.style.background = 'rgba(255,255,255,0.9)';
+    toast.style.color = '#000';
+    toast.style.padding = '20px 40px';
+    toast.style.borderRadius = '40px';
+    toast.style.fontWeight = '900';
+    toast.style.fontSize = '2rem';
+    toast.style.zIndex = '2000';
+    document.body.appendChild(toast);
     
-    setTimeout(() => {
-        toast.classList.add('show');
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 500);
-        }, 3000);
-    }, 100);
+    setTimeout(() => toast.remove(), 2000);
 }
-
-// Start Camera trigger
-startBtn.addEventListener('click', async () => {
-    if (!imageModelURL) {
-        setupModal.classList.remove('hidden');
-        return;
-    }
-    
-    startBtn.textContent = "CARREGANDO MODELO...";
-    startBtn.disabled = true;
-    await loadModel();
-    startBtn.textContent = "IA ONLINE";
-    showToast("Visão Digital Ativada");
-});
-
-// Toast CSS Addition (Injected via JS for convenience)
-const style = document.createElement('style');
-style.textContent = `
-    .toast {
-        background: rgba(22, 27, 34, 0.95);
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        border-left: 4px solid var(--accent-color);
-        margin-bottom: 10px;
-        transform: translateX(120%);
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        backdrop-filter: blur(10px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .toast.show { transform: translateX(0); }
-    #toast-container {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column-reverse;
-    }
-`;
-document.head.appendChild(style);

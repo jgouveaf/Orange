@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poker Vision IoT | AI Controlled Game</title>
+    <title>PO2 | Poker & Strategy</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 </head>
 <body>
     <div id="app">
         <!-- Header Section -->
         <header>
             <div class="logo">
-                <span class="icon">♠</span>
-                <h1>POKER<span>VISION</span> <small>IoT</small></h1>
+                <span class="icon">👑</span>
+                <h1>PO2 <small>EDITION</small></h1>
             </div>
             <div class="stats-panel">
                 <div class="stat-item">
@@ -25,8 +23,8 @@
                     <span id="balance">1000</span>
                 </div>
                 <div class="stat-item">
-                    <label>APOSTA ATUAL</label>
-                    <span id="current-bet">0</span>
+                    <label>POT TOTAL</label>
+                    <span id="pot-value">0</span>
                 </div>
             </div>
         </header>
@@ -34,90 +32,81 @@
         <!-- Main Game Area -->
         <main>
             <div class="game-container">
+                <!-- Poker Table -->
                 <div class="poker-table">
                     <div class="felt"></div>
                     
-                    <!-- Dealer Section -->
                     <div class="dealer-area">
-                        <div class="community-cards" id="community-cards">
-                            <!-- Cards will be injected here -->
-                        </div>
-                        <div class="pot-display">
-                            POT: $<span id="pot-value">0</span>
-                        </div>
+                        <div class="community-cards" id="community-cards"></div>
                     </div>
 
-                    <!-- Player Section -->
                     <div class="player-area">
-                        <div class="player-cards" id="player-cards">
-                            <!-- Player cards will be injected here -->
-                        </div>
-                        <div class="player-status">
-                            <h2 id="player-name">VOCÊ</h2>
-                            <div class="status-indicator" id="player-action-indicator">AGUARDANDO...</div>
+                        <div class="player-cards" id="player-cards"></div>
+                        <div class="game-controls">
+                            <button id="check-btn" class="game-btn">CHECK / PASSAR</button>
+                            <button id="bet-btn" class="game-btn primary">APOSTAR 10</button>
+                            <button id="fold-btn" class="game-btn danger">FOLD / SAIR</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Side Panel: AI Vision & Controls -->
-                <aside class="vision-panel">
-                    <div class="cam-container">
-                        <div id="video-container">
-                            <!-- Webcam Feed Rendered Here -->
-                        </div>
-                        <div class="vision-overlay">
-                            <div class="vignette"></div>
-                            <div class="scanning-line"></div>
-                            <div class="confidence-meter">
-                                <span id="label-name">NADA</span>
-                                <div class="progress-bar">
-                                    <div id="confidence-bar" style="width: 0%"></div>
-                                </div>
-                                <span id="confidence-value">0%</span>
-                            </div>
+                <!-- Strategic Decks Panel -->
+                <aside class="strategy-panel">
+                    <div class="deck-section gold">
+                        <h3>🟡 BARALHO DE OURO</h3>
+                        <p class="deck-desc">Economia e Defesa</p>
+                        <div class="special-cards-grid">
+                            <button class="special-card-btn" onclick="playSpecial('gold_jack')" title="Coletor: +5 fichas">J<span>OURO</span></button>
+                            <button class="special-card-btn" onclick="playSpecial('gold_queen')" title="Escudo: Paga metade se perder">Q<span>OURO</span></button>
+                            <button class="special-card-btn" onclick="playSpecial('gold_king')" title="Imposto: Outros pagam 2">K<span>OURO</span></button>
+                            <button class="special-card-btn" onclick="playSpecial('gold_ace')" title="Cofre: Invencível contra Esmeralda">A<span>OURO</span></button>
                         </div>
                     </div>
-                    
-                    <div class="ai-controls">
-                        <h3>COMANDOS IA</h3>
-                        <div class="gestures-info">
-                            <div class="gesture-item">
-                                <span class="gesture-icon">👍</span>
-                                <span class="gesture-desc">APOSTAR ($10)</span>
-                            </div>
-                            <div class="gesture-item">
-                                <span class="gesture-icon">✋</span>
-                                <span class="gesture-desc">DESISTIR (FOLD)</span>
-                            </div>
-                            <div class="gesture-item">
-                                <span class="gesture-icon">✌️</span>
-                                <span class="gesture-desc">PASSAR (CHECK)</span>
-                            </div>
-                        </div>
-                        
-                        <div class="iot-status">
-                            <div class="led-indicator" id="led-green"></div>
-                            <span>STATUS IOT: ONLINE</span>
-                        </div>
 
-                        <button id="start-btn" class="primary-button">INICIAR CÂMERA</button>
+                    <div class="deck-section emerald">
+                        <h3>🟢 BARALHO DE ESMERALDA</h3>
+                        <p class="deck-desc">Trapaça e Ataque</p>
+                        <div class="special-cards-grid">
+                            <button class="special-card-btn" onclick="playSpecial('emerald_jack')" title="Espião: Ver maior carta mesa">J<span>ESM</span></button>
+                            <button class="special-card-btn" onclick="playSpecial('emerald_queen')" title="Ilusão: Troca carta numérica">Q<span>ESM</span></button>
+                            <button class="special-card-btn" onclick="playSpecial('emerald_king')" title="Veneno: Dobra aposta rival">K<span>ESM</span></button>
+                            <button class="special-card-btn" onclick="playSpecial('emerald_ace')" title="Portal: Cancela efeitos de Ouro">A<span>ESM</span></button>
+                        </div>
+                    </div>
+
+                    <div class="log-panel" id="action-log">
+                        <div class="log-entry">Bem-vindo ao PO2.</div>
                     </div>
                 </aside>
             </div>
         </main>
 
-        <!-- Notifications -->
-        <div id="toast-container"></div>
-
-        <!-- Setup Modal (for URL) -->
-        <div id="setup-modal" class="modal">
+        <!-- Tutorial Modal -->
+        <div id="tutorial-modal" class="modal">
             <div class="modal-content">
-                <h2>Configuração Teachable Machine</h2>
-                <p>Insira o link do seu modelo treinado:</p>
-                <input type="text" id="model-url" placeholder="https://teachablemachine.withgoogle.com/models/XXXXX/">
-                <button id="save-model-btn">SALVAR E COMEÇAR</button>
+                <div class="tutorial-header">
+                    <h2>COMO JOGAR PO2</h2>
+                    <span class="badge">V1.0</span>
+                </div>
+                <div class="tutorial-steps">
+                    <div class="step">
+                        <span class="step-num">1</span>
+                        <p>O objetivo é vencer as mãos de Poker usando cartas tradicionais + <strong>Cartas Estratégicas</strong>.</p>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">2</span>
+                        <p>Use o <strong>Baralho de Ouro</strong> 🟡 para economizar fichas e se proteger.</p>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">3</span>
+                        <p>Use o <strong>Baralho de Esmeralda</strong> 🟢 para atacar adversários e sabotar o jogo.</p>
+                    </div>
+                </div>
+                <button id="close-tutorial" class="primary-button">ESTOU PRONTO</button>
             </div>
         </div>
+
+        <div id="toast-container"></div>
     </div>
 
     <script src="app.js"></script>
