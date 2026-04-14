@@ -199,6 +199,12 @@
         async function saveAndSolve() {
             const correctedText = document.getElementById('detected-text').value;
             const resVal = document.getElementById('answer-val');
+            const btn = document.querySelector("#final-res button");
+
+            if (!correctedText) return alert("IA não detectou nada. Tente digitar a conta.");
+
+            btn.innerText = "IA PROCESSANDO...";
+            btn.disabled = true;
 
             try {
                 const res = await fetch("http://localhost:8000/aprender", {
@@ -210,12 +216,30 @@
                         user_corrected: correctedText
                     })
                 });
+                
                 const data = await res.json();
                 
-                resVal.innerText = data.result;
-                resVal.classList.add('text-cyan-400');
+                if (data.result) {
+                    resVal.innerText = data.result;
+                    resVal.classList.add('text-cyan-400');
+                    resVal.classList.remove('text-red-500');
+                } else {
+                    throw new Error("Resposta vazia");
+                }
             } catch (e) {
-                alert("Hub Offline. Por favor, reinicie o app.py.");
+                console.error("Erro no Hub:", e);
+                // Fallback: Tenta resolver localmente se o Hub falhar
+                try {
+                    const localResult = eval(correctedText.replace(/[xX]/g, "*").replace(/÷/g, "/").replace(/√/g, "Math.sqrt"));
+                    resVal.innerText = localResult;
+                    resVal.classList.add('text-zinc-400'); // Cor diferente para indicar local
+                } catch (localErr) {
+                    resVal.innerText = "ERRO";
+                    resVal.classList.add('text-red-500');
+                }
+            } finally {
+                btn.innerText = "SALVAR APRENDIZADO & RESOLVER";
+                btn.disabled = false;
             }
         }
 
