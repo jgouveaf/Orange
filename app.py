@@ -6,6 +6,7 @@ from datetime import datetime
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import logging
 
@@ -14,6 +15,15 @@ logging.basicConfig(level=logging.INFO, format='[ANTIGRAVITY-AI] %(asctime)s | %
 logger = logging.getLogger("Antigravity")
 
 app = FastAPI(title="Antigravity Evolutive AI")
+
+# Habilitar CORS para permitir conexões do GitHub Pages ao Localhost
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Configuração de Armazenamento
 DATASET_DIR = "dataset"
