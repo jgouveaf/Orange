@@ -44,19 +44,18 @@ def normalize(expr: str) -> str:
     return e
 
 def prepare_for_sympy(expr: str) -> str:
-    """Converte expressão normalizada para sintaxe Sympy (injetando multiplicação implícita)."""
+    """Injeta multiplicação explícita: qualquer número/variável/parêntese antes de ( recebe *."""
     e = expr
-    # 1. Multiplicação entre número e letra (2x -> 2*x)
-    e = re.sub(r'(\d)\s*([xyz])', r'\1*\2', e)
-    # 2. Multiplicação ANTES de parênteses (3(4) -> 3*(4), x(2) -> x*(2))
-    e = re.sub(r'(\d)\s*\(', r'\1*(', e)
-    e = re.sub(r'([xyz])\s*\(', r'\1*(', e)
-    # 3. Multiplicação entre parênteses ((x+1)(x+2) -> (x+1)*(x+2))
+    # 1. Número colado em variável: 2x -> 2*x
+    e = re.sub(r'(\d)\s*([a-zA-Z])', r'\1*\2', e)
+    # 2. Qualquer dígito ou letra antes de '(': 3( -> 3*(, x( -> x*(
+    e = re.sub(r'([\w])\s*\(', r'\1*(', e)
+    # 3. Fecha-parênteses seguido de abre-parênteses: )( -> )*(
     e = re.sub(r'\)\s*\(', r')*(', e)
-    # 4. Potência DEPOIS de parênteses ((x+3)2 -> (x+3)**2)
+    # 4. Potência depois de parênteses: )2 -> )**2
     e = re.sub(r'\)\s*(\d+)', r')**\1', e)
-    # 5. Potência DEPOIS de variável (x2 -> x**2)
-    e = re.sub(r'([xyz])\s*(\d+)', r'\1**\2', e)
+    # 5. Potência depois de variável: x2 -> x**2 (lookup negativo para não duplicar **)
+    e = re.sub(r'([a-zA-Z])(?!\*)(\d+)', r'\1**\2', e)
     return e
 
 def calculate_expression(expr: str) -> dict:
@@ -65,10 +64,13 @@ def calculate_expression(expr: str) -> dict:
     try:
         current_step = "Normalização de símbolos"
         raw = normalize(expr)
-        
+
+        # Remove o = do final se não tiver nada depois (ex: 10-5= ou 2(9+1)-3(6-6)=)
+        if raw.strip().endswith("="):
+            raw = raw.strip()[:-1].strip()
+
         # Critério de Decisão: Álgebra vs Aritmética
-        # Só tratamos como equação Sympy se houver variáveis OU se houver dois lados preenchidos (ex: 2+2=4)
-        has_var = bool(re.search(r'[a-z]', raw))
+        has_var = bool(re.search(r'[a-zA-Z]', raw.replace("sqrt", "")))
         has_effective_eq = False
         if "=" in raw:
             sides = raw.split("=")
@@ -76,39 +78,47 @@ def calculate_expression(expr: str) -> dict:
                 has_effective_eq = True
 
         if has_var or has_effective_eq:
-            from sympy import symbols, solve, Eq, sympify, expand, simplify, latex, Poly
-            from sympy.solvers import solve
-            
+            from sympy import symbols, solve, Eq, Poly, simplify
+            from sympy.parsing.sympy_parser import (
+                parse_expr, standard_transformations,
+                implicit_multiplication_application, convert_xor
+            )
+
             x, y, z = symbols('x y z')
-            sym_locals = {"x": x, "y": y, "z": z, "sqrt": __import__("sympy").sqrt}
+            local_dict = {"x": x, "y": y, "z": z, "sqrt": __import__("sympy").sqrt}
+            transformations = (
+                standard_transformations
+                + (implicit_multiplication_application, convert_xor)
+            )
 
-            current_step = "Análise de estrutura da equação"
-            sides = raw.split("=", 1)
-            lhs_raw = sides[0].strip()
-            rhs_raw = sides[1].strip() if len(sides) > 1 else "0"
-            
-            current_step = "Preparação algébrica (Sympy)"
+            current_step = "Divisão dos lados da equação"
+            if has_effective_eq:
+                sides = raw.split("=", 1)
+                lhs_raw = sides[0].strip()
+                rhs_raw = sides[1].strip()
+            else:
+                lhs_raw = raw
+                rhs_raw = "0"
+
+            current_step = "Preparação algébrica"
             lhs_str = prepare_for_sympy(lhs_raw)
-            rhs_str = prepare_for_sympy(rhs_raw) if rhs_raw else "0"
+            rhs_str = prepare_for_sympy(rhs_raw)
 
-            logger.info(f"Sympy LHS: {lhs_str} | RHS: {rhs_str}")
+            logger.info(f"LHS: {lhs_str} | RHS: {rhs_str}")
 
-            current_step = "Processamento simbólico"
-            lhs = sympify(lhs_str, locals=sym_locals)
-            rhs = sympify(rhs_str, locals=sym_locals)
+            current_step = "Conversão Sympy (parse_expr)"
+            lhs = parse_expr(lhs_str, local_dict=local_dict, transformations=transformations)
+            rhs = parse_expr(rhs_str, local_dict=local_dict, transformations=transformations)
             equation = Eq(lhs, rhs)
 
-            steps = []
-            steps.append(f"🔍 EQUAÇÃO IDENTIFICADA:\n   {lhs} = {rhs}")
+            steps = [f"🔍 EQUAÇÃO IDENTIFICADA:\n   {lhs} = {rhs}"]
 
-            # Simplificação
             expr_to_solve = lhs - rhs
             simplified = simplify(expr_to_solve)
             if simplified != expr_to_solve:
                 steps.append(f"\n1️⃣ SIMPLIFICAÇÃO:\n   {simplified} = 0")
 
-            current_step = "Análise de grau e passos"
-            # Se for uma equação do segundo grau (ax^2 + bx + c = 0)
+            current_step = "Análise de grau"
             try:
                 poly = Poly(simplified, x)
                 degree = poly.degree()
@@ -118,53 +128,46 @@ def calculate_expression(expr: str) -> dict:
                         a, b, c = coeffs
                         delta = b**2 - 4*a*c
                         steps.append(f"\n2️⃣ RESOLUÇÃO (Equação do 2º Grau):")
-                        steps.append(f"   • Identificando: a={a}, b={b}, c={c}")
-                        steps.append(f"   • Cálculo do Delta (Δ = b² - 4ac):")
-                        steps.append(f"     Δ = ({b})² - 4*({a})*({c})")
-                        steps.append(f"     Δ = {delta}")
-                        
+                        steps.append(f"   • a={a}, b={b}, c={c}")
+                        steps.append(f"   • Δ = b² - 4ac = ({b})² - 4·({a})·({c}) = {delta}")
                         if delta < 0:
-                            steps.append(f"   • Como Δ < 0, as raízes são complexas.")
+                            steps.append("   • Δ < 0 → Raízes complexas")
                         elif delta == 0:
-                            steps.append(f"   • Como Δ = 0, existe uma única raiz real.")
+                            steps.append("   • Δ = 0 → Uma raiz real")
                         else:
-                            steps.append(f"   • Como Δ > 0, existem duas raízes reais distintas.")
+                            steps.append("   • Δ > 0 → Duas raízes reais distintas")
                 elif degree == 1:
-                    steps.append(f"\n2️⃣ RESOLUÇÃO (Equação do 1º Grau):")
-                    steps.append(f"   • Isolando a incógnita x...")
-            except:
+                    steps.append(f"\n2️⃣ RESOLUÇÃO (Equação do 1º Grau):\n   • Isolando x...")
+            except Exception:
                 pass
 
             current_step = "Busca de soluções"
             solutions = solve(equation, x)
-            
-            steps.append(f"\n3️⃣ RESULTADO FINAL:")
-            steps.append(f"   x = {solutions}")
-            
-            return {
-                "answer": str(solutions),
-                "explanation": "\n".join(steps)
-            }
+            steps.append(f"\n3️⃣ RESULTADO FINAL:\n   x = {solutions}")
 
-        # --- Aritmética simples ---
-        import math
+            return {"answer": str(solutions), "explanation": "\n".join(steps)}
+
+        # --- Aritmética pura (sem variáveis, sem = preenchido) ---
+        import math as _math
         current_step = "Cálculo aritmético"
-        clean = normalize(expr).replace("=", "")
-        # Remove qualquer 'x' que possa ter sido lido como multiplicação em aritmética
-        clean = clean.replace("x", "*").replace("X", "*")
-        clean = re.sub(r'[^0-9+\-*/().\s]', '', clean.replace("sqrt", "math.sqrt"))
-        result = eval(clean, {"math": math, "__builtins__": {}})
-
+        clean = raw.replace("=", "")
+        # Injeta multiplicação implícita para aritmética também: 3(4) -> 3*(4)
+        clean = re.sub(r'(\d)\s*\(', r'\1*(', clean)
+        clean = re.sub(r'\)\s*\(', r')*(', clean)
+        clean = clean.replace("sqrt", "__sqrt__")
+        clean = re.sub(r'[^0-9+\-*/().\s_]', '', clean)
+        clean = clean.replace("__sqrt__", "_math.sqrt")
+        result = eval(clean, {"_math": _math, "__builtins__": {}})
         return {
             "answer": str(round(result, 4)),
-            "explanation": f"✅ CÁLCULO DIRETO:\n• Operação: {clean}\n• Resultado: {result}"
+            "explanation": f"✅ CÁLCULO DIRETO:\n• Expressão: {clean.replace('_math.', '')}\n• Resultado: {result}"
         }
 
     except Exception as e:
         logger.error(f"Erro em {current_step}: {e}")
         return {
             "answer": "ERRO",
-            "explanation": f"❌ FALHA NO PROCESSAMENTO\nPasso: {current_step}\nDetalhe: {str(e)}\n\n💡 Dica: Verifique se o símbolo '*' foi usado para multiplicação e se o expoente '²' está legível."
+            "explanation": f"❌ FALHA: {current_step}\n{str(e)}\n\n💡 Verifique se a expressão está correta."
         }
 
 def format_pretty(text: str) -> str:
