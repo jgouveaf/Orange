@@ -12,18 +12,19 @@ O sistema segue o padrão de **micro-serviços desacoplados**:
 
 ### Localmente
 1.  Instale as dependências: `pip install -r requirements.txt`
-2.  Inicie o servidor: `python main.py`
-3.  Abra o `index.html` no seu navegador.
+2.  Inicie o servidor Antigravity: `python app.py`
+3.  Acesse `http://localhost:8000` no seu navegador.
 
-### Docker
-1.  Construa a imagem: `docker build -t antigravity-core .`
-2.  Rode o container: `docker run -p 8000:8000 antigravity-core`
+### Acesso Externo via Ngrok
+Para testar o controle remoto ou em outros dispositivos:
+1.  Com o servidor rodando, abra um novo terminal.
+2.  Execute: `ngrok http 8000`
+3.  Copie a URL `https` fornecida pelo Ngrok. Agora seu sistema de visão está disponível globalmente!
 
-## 🌐 Deploy (Railway / Render)
-Para fazer o deploy em nuvem:
-1.  Conecte seu repositório GitHub ao **Railway.app** ou **Render.com**.
-2.  O Railway detectará automaticamente o `Dockerfile`.
-3.  No frontend (`index.html`), altere a `API_URL` para o domínio fornecido pelo serviço de deploy.
+## ⚙️ Funcionamento
+- **Processamento Local**: O navegador roda o modelo de IA, economizando banda e recursos do servidor.
+- **Webhook Ultrarrápido**: O sinal é enviado ao `app.py` assim que o gesto é validado.
+- **Async Engine**: O Antigravity processa a lógica de automação em segundo plano, garantindo 0 latency na interface.
 
 ## ⚙️ Funcionalidades
 - **Task Offloading**: A lógica de hardware não atrasa a detecção de imagem.
