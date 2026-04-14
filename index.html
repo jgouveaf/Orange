@@ -3,332 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Antigravity | Math Learning AI</title>
+    <title>Antigravity | Math AI Scanner</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #050507; }
+        body { font-family: 'Inter', sans-serif; background: #05050a; }
         .math-font { font-family: 'Fira Code', monospace; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-        .scan-line { position: absolute; width: 100%; height: 2px; background: #06b6d4; top: 0; animation: scan 3s ease-in-out infinite; z-index: 20; opacity: 0; }
-        @keyframes scan { 0% { top: 0; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-        .modal { display: none; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
+        .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .scan-line { position: absolute; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #06b6d4, transparent); top: 0; animation: scan 2.5s ease-in-out infinite; z-index: 20; opacity: 0; }
+        @keyframes scan { 0%{top:0;opacity:0} 20%{opacity:1} 80%{opacity:1} 100%{top:100%;opacity:0} }
+        .modal { display: none; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); }
         .modal.active { display: flex; }
+        #processed-preview { max-height: 120px; object-fit: contain; }
     </style>
 </head>
-<body class="text-zinc-100 min-h-screen flex flex-col p-4 md:p-10">
+<body class="text-zinc-100 min-h-screen flex flex-col p-4 md:p-8">
 
-    <!-- Modal de Ajuda / Configuração -->
+    <!-- Modal de Ajuda -->
     <div id="help-modal" class="modal fixed inset-0 z-[100] items-center justify-center p-6">
-        <div class="glass max-w-lg w-full rounded-3xl p-8 border-cyan-500/30 shadow-2xl">
-            <h2 class="text-2xl font-bold text-cyan-500 mb-6">Como Ativar o Hub Online</h2>
+        <div class="glass max-w-lg w-full rounded-3xl p-8 shadow-2xl border-cyan-500/20">
+            <h2 class="text-2xl font-bold text-cyan-400 mb-6">Como Ativar o Hub Online</h2>
             <div class="space-y-4 text-sm text-zinc-400">
-                <p>Para o site funcionar em qualquer computador, siga estes passos:</p>
+                <p>Para o site funcionar, rode o servidor no seu computador:</p>
                 <div class="space-y-3">
-                    <div class="flex gap-3">
-                        <div class="w-5 h-5 rounded-full bg-zinc-800 text-[10px] flex items-center justify-center border border-white/10">1</div>
+                    <div class="flex gap-3 items-start">
+                        <div class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">1</div>
                         <p>Abra a pasta onde você salvou este projeto.</p>
                     </div>
-                    <div class="flex gap-3">
-                        <div class="w-5 h-5 rounded-full bg-zinc-800 text-[10px] flex items-center justify-center border border-white/10">2</div>
-                        <p>Clique na barra de endereços da pasta, digite <b class="text-white">cmd</b> e dê Enter.</p>
+                    <div class="flex gap-3 items-start">
+                        <div class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">2</div>
+                        <p>Clique na barra de endereços da pasta, digite <b class="text-white">cmd</b> e pressione Enter.</p>
                     </div>
-                    <div class="flex gap-3">
-                        <div class="w-5 h-5 rounded-full bg-zinc-800 text-[10px] flex items-center justify-center border border-white/10">3</div>
-                        <p>No terminal que abrir, digite e dê Enter:</p>
+                    <div class="flex gap-3 items-start">
+                        <div class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">3</div>
+                        <p>No terminal, digite e pressione Enter:</p>
                     </div>
                 </div>
-                <div class="bg-black/50 p-4 rounded-xl font-mono text-cyan-400 border border-cyan-500/20 shadow-inner">
+                <div class="bg-black/60 p-4 rounded-xl font-mono text-cyan-400 border border-cyan-500/20 text-sm">
                     python app.py
                 </div>
-                <p class="text-[10px] uppercase font-bold text-zinc-600">Atenção: Mantenha essa janela do terminal aberta enquanto usa o site.</p>
+                <p class="text-[10px] uppercase font-bold text-zinc-600 pt-2">⚠️ Mantenha a janela do terminal aberta enquanto usa o site.</p>
             </div>
-            <button onclick="toggleHelp()" class="mt-8 w-full bg-cyan-600 py-3 rounded-xl font-bold">ENTENDI</button>
+            <button onclick="toggleHelp()" class="mt-6 w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition-colors">ENTENDI</button>
         </div>
     </div>
 
-    <header class="max-w-6xl w-full mx-auto flex justify-between items-center mb-10">
+    <!-- Header -->
+    <header class="max-w-6xl w-full mx-auto flex justify-between items-center mb-8">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center font-bold text-white text-xl">√</div>
-            <h1 class="text-xl font-bold tracking-tighter uppercase">Antigravity Hub</h1>
+            <div class="w-10 h-10 bg-cyan-600 rounded-xl flex items-center justify-center font-bold text-white text-xl math-font">∑</div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight leading-none">MathAI Scanner</h1>
+                <p class="text-[10px] text-zinc-500 uppercase tracking-widest">Antigravity Hub</p>
+            </div>
         </div>
-        <div class="flex gap-4">
-            <button onclick="toggleHelp()" class="bg-zinc-900 border border-white/5 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-800 transition-all">?</button>
-            <div id="status" class="text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-zinc-800 bg-zinc-900 flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-red-500"></div> Hub Offline
+        <div class="flex gap-3 items-center">
+            <button onclick="toggleHelp()" class="w-9 h-9 rounded-full glass flex items-center justify-center text-zinc-400 hover:text-cyan-400 transition-colors">?</button>
+            <div id="status-badge" class="flex items-center gap-2 px-4 py-2 rounded-full glass text-[11px] font-bold uppercase tracking-widest">
+                <div id="status-dot" class="w-2 h-2 rounded-full bg-red-500"></div>
+                <span id="status-text">Hub Offline</span>
             </div>
         </div>
     </header>
 
-    <main class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        <!-- Scanner Area -->
-        <div class="lg:col-span-12 xl:col-span-7 space-y-6">
-            <div class="glass rounded-[2rem] p-4 relative overflow-hidden group shadow-2xl">
-                    <div id="webcam-container" class="rounded-2xl overflow-hidden bg-zinc-900 aspect-video flex flex-col items-center justify-center relative border border-white/5">
-                        <div class="text-center space-y-4 px-8" id="placeholder">
-                            <div class="text-zinc-800 text-6xl">📄</div>
-                            <div class="space-y-2">
-                                <p class="text-cyan-500 text-xs font-bold uppercase tracking-widest">Aviso Importante</p>
-                                <p class="text-zinc-400 text-sm italic">"As imagens devem ser simples, nítidas e conter apenas as contas."</p>
-                            </div>
-                            <button onclick="initWebcam()" class="bg-cyan-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-cyan-600/20">ATIVAR SENSORES</button>
-                        </div>
-                        <canvas id="processed-preview" class="absolute bottom-4 right-4 w-32 border border-cyan-500/50 rounded-lg hidden z-50"></canvas>
-                        <div id="scan-bar" class="scan-line"></div>
-                    </div>
+    <main class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
+
+        <!-- SCANNER -->
+        <div class="lg:col-span-7 space-y-4">
+            
+            <!-- Área de Input -->
+            <div class="glass rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between mb-1">
+                    <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Entrada de Imagem</p>
+                    <p class="text-[10px] text-amber-500 font-semibold">⚠ Imagem simples com a conta apenas</p>
+                </div>
                 
-                <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-4 z-30">
-                    <button onclick="solve()" id="solve-btn" class="bg-zinc-100 text-black px-10 py-4 rounded-2xl font-bold text-sm hover:scale-105 transition-transform active:scale-95 shadow-2xl">
-                        ESCANEAR AGORA
-                    </button>
+                <!-- Drop Zone / Preview -->
+                <div id="drop-zone" onclick="document.getElementById('file-input').click()" 
+                     class="relative rounded-xl bg-zinc-900/80 border-2 border-dashed border-zinc-700 hover:border-cyan-500 transition-colors cursor-pointer overflow-hidden aspect-video flex flex-col items-center justify-center">
+                    <div id="drop-placeholder" class="text-center space-y-3 px-8">
+                        <div class="text-5xl text-zinc-700">📄</div>
+                        <p class="text-zinc-500 text-sm">Clique para enviar uma imagem</p>
+                        <p class="text-zinc-600 text-xs">JPG, PNG, WebP</p>
+                    </div>
+                    <img id="img-preview" class="hidden absolute inset-0 w-full h-full object-contain bg-zinc-900" src="" alt="Preview">
+                    <div id="scan-bar" class="scan-line"></div>
+                </div>
+                <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(this)">
+
+                <!-- Processed Preview -->
+                <div id="processed-container" class="hidden space-y-1">
+                    <p class="text-[10px] text-zinc-600 uppercase font-bold tracking-widest">O que a IA vê (após filtro):</p>
+                    <canvas id="processed-preview" class="w-full rounded-lg border border-zinc-800 bg-zinc-900"></canvas>
                 </div>
             </div>
-            <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(this)">
-            <button onclick="document.getElementById('file-input').click()" class="text-xs text-zinc-500 hover:text-cyan-500 font-bold tracking-widest uppercase ml-4 mt-2 transition-colors">Ou carregar arquivo</button>
 
-            <!-- Galeria de Símbolos -->
-            <div class="mt-10 p-6 glass rounded-3xl border-dashed border-white/10">
-                <h4 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4">Símbolos que a IA entende:</h4>
-                <div class="grid grid-cols-4 md:grid-cols-6 gap-4 text-center">
-                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">+</span><p class="text-[8px] text-zinc-600 mt-1">SOMA</p></div>
-                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">-</span><p class="text-[8px] text-zinc-600 mt-1">SUBTRAÇÃO</p></div>
-                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">x</span><p class="text-[8px] text-zinc-600 mt-1">MULTIPLICAÇÃO</p></div>
-                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">÷</span><p class="text-[8px] text-zinc-600 mt-1">DIVISÃO</p></div>
-                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">√</span><p class="text-[8px] text-zinc-600 mt-1">RAIZ</p></div>
-                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">^</span><p class="text-[8px] text-zinc-600 mt-1">POTÊNCIA</p></div>
+            <!-- Botão de Scan -->
+            <button onclick="runScan()" id="scan-btn" 
+                    class="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white py-4 rounded-2xl font-bold text-sm transition-all shadow-lg shadow-cyan-600/20">
+                🔍 ESCANEAR E RESOLVER
+            </button>
+
+            <!-- Biblioteca de Símbolos -->
+            <div class="glass rounded-2xl p-4">
+                <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-3">Símbolos suportados</p>
+                <div class="grid grid-cols-4 gap-2 text-center text-sm">
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">+  −</span><p class="text-[9px] text-zinc-600 mt-1">SOMA / SUB</p></div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">×  ÷</span><p class="text-[9px] text-zinc-600 mt-1">MULT / DIV</p></div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">x²  ^</span><p class="text-[9px] text-zinc-600 mt-1">POTÊNCIA</p></div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">√</span><p class="text-[9px] text-zinc-600 mt-1">RAIZ</p></div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">x  y</span><p class="text-[9px] text-zinc-600 mt-1">INCÓGNITA</p></div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">( )</span><p class="text-[9px] text-zinc-600 mt-1">PARÊNTESES</p></div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">=</span><p class="text-[9px] text-zinc-600 mt-1">EQUAÇÃO</p></div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">a/b</span><p class="text-[9px] text-zinc-600 mt-1">FRAÇÃO</p></div>
                 </div>
             </div>
         </div>
 
-        <!-- Resolution & Learning Area -->
-        <div class="lg:col-span-12 xl:col-span-5 h-full">
-            <div class="glass rounded-[2rem] p-8 h-full min-h-[550px] flex flex-col space-y-8">
+        <!-- PAINEL DE RESULTADO -->
+        <div class="lg:col-span-5">
+            <div class="glass rounded-2xl p-6 h-full flex flex-col gap-6 min-h-[500px]">
                 
-                <h3 class="text-xs font-bold text-cyan-500 uppercase tracking-widest">Análise de IA & Aprendizado</h3>
+                <p class="text-[10px] text-cyan-500 uppercase font-bold tracking-widest">Análise & Resolução</p>
 
-                <!-- Texto Lido (Editável para Correção) -->
-                <div id="analysis-box" class="space-y-4 hidden animate-pulse">
-                    <div class="space-y-1">
-                        <label class="text-[10px] uppercase text-zinc-500 font-bold tracking-widest">IA LEU (Valide abaixo):</label>
-                        <input type="text" id="detected-text" class="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-4 text-xl font-bold math-font text-cyan-400 focus:border-cyan-500 outline-none">
-                    </div>
-                    <div class="flex gap-2">
-                        <div id="ocr-loading" class="text-[10px] text-zinc-500 italic">Processando OCR Tesseract...</div>
-                    </div>
+                <!-- O que a IA leu -->
+                <div id="analysis-box" class="space-y-2 hidden">
+                    <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">IA leu:</label>
+                    <input type="text" id="detected-text" 
+                           class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-500 outline-none rounded-xl px-4 py-3 text-lg math-font text-cyan-300 transition-colors"
+                           placeholder="Corrija aqui se necessário...">
+                    <p id="ocr-status" class="text-[10px] text-zinc-500 italic"></p>
                 </div>
 
-                <!-- Resultado Final -->
-                <div id="final-res" class="flex-1 flex flex-col justify-center items-center text-center space-y-4 hidden">
-                    <div class="text-[10px] uppercase text-zinc-500 font-bold tracking-widest">Resultado do Cálculo</div>
-                    <div id="answer-val" class="text-6xl font-bold text-white math-font tracking-tighter mb-4"></div>
-                    <div id="explanation-val" class="text-left w-full bg-black/30 p-4 rounded-xl text-[10px] font-mono text-zinc-500 hidden border border-white/5 whitespace-pre-wrap"></div>
-                    <button onclick="saveAndSolve()" class="mt-8 bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 px-6 py-2 rounded-lg text-xs font-bold hover:bg-cyan-600 hover:text-white transition-all">SALVAR APRENDIZADO & RESOLVER</button>
+                <!-- Resultado -->
+                <div id="result-box" class="hidden flex-1 flex flex-col justify-center items-center text-center gap-4">
+                    <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Resultado</p>
+                    <div id="answer-val" class="text-5xl font-bold math-font text-white break-all px-4"></div>
+                    <div id="explanation-val" class="hidden w-full text-left bg-black/40 border border-zinc-800 rounded-xl p-4 text-[11px] font-mono text-zinc-500 whitespace-pre-wrap leading-5"></div>
                 </div>
 
-                <!-- Dica Inicial -->
-                <div id="hint" class="flex-1 flex flex-col justify-center items-center text-center opacity-20 py-20">
-                    <div class="text-5xl mb-4">∑</div>
-                    <p class="text-sm">Capture uma conta para começar a interpretação.</p>
+                <!-- Hint inicial -->
+                <div id="hint-panel" class="flex-1 flex flex-col items-center justify-center text-center opacity-20 py-10 gap-3">
+                    <div class="text-5xl">∫</div>
+                    <p class="text-sm">Envie uma imagem com a conta para começar.</p>
                 </div>
 
+                <!-- Botão de aprendizado -->
+                <button onclick="saveAndSolve()" id="solve-btn"
+                        class="w-full hidden bg-cyan-900/30 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-600 hover:text-white py-3 rounded-xl text-xs font-bold transition-all">
+                    💾 CONFIRMAR TEXTO E RESOLVER
+                </button>
             </div>
         </div>
 
     </main>
 
     <script>
-        let webcam;
-        let lastCapturedImage = null;
-        let rawIALeading = "";
+        const HUB = "http://localhost:8000";
+        let lastImage = null;
+        let lastRawRead = "";
 
         function toggleHelp() { document.getElementById('help-modal').classList.toggle('active'); }
 
-        async function initWebcam() {
+        // Health heartbeat
+        setInterval(async () => {
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.autoplay = true;
-                video.onloadedmetadata = () => {
-                   const canvas = document.createElement('canvas');
-                   canvas.width = 1280; canvas.height = 720;
-                   webcam = { video, canvas, ctx: canvas.getContext('2d') };
-                   const container = document.getElementById('webcam-container');
-                   container.innerHTML = ''; container.appendChild(video);
-                   video.className = "w-full h-full object-cover rounded-2xl";
-                };
-            } catch (err) { alert("Câmera não autorizada."); }
-        }
+                const r = await fetch(`${HUB}/health`, { signal: AbortSignal.timeout(2000) });
+                if (r.ok) {
+                    dot.className = "w-2 h-2 rounded-full bg-cyan-400";
+                    txt.textContent = "Hub Online";
+                    txt.className = "text-cyan-400";
+                    return;
+                }
+            } catch {}
+            dot.className = "w-2 h-2 rounded-full bg-red-500";
+            txt.textContent = "Hub Offline";
+            txt.className = "text-zinc-400";
+        }, 3000);
 
         async function handleFile(input) {
-            if (input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => startOCR(e.target.result);
-                reader.readAsDataURL(input.files[0]);
-            }
+            if (!input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const dataURL = e.target.result;
+                lastImage = dataURL;
+
+                // Show preview
+                const preview = document.getElementById('img-preview');
+                preview.src = dataURL;
+                preview.classList.remove('hidden');
+                document.getElementById('drop-placeholder').classList.add('hidden');
+
+                await runScan();
+            };
+            reader.readAsDataURL(input.files[0]);
         }
 
-        function solve() {
-            if (!webcam) return alert("Ative a câmera primeiro!");
-            webcam.ctx.drawImage(webcam.video, 0, 0, 1280, 720);
-            const dataURL = webcam.canvas.toDataURL('image/png');
-            startOCR(dataURL);
-        }
-
-        async function startOCR(dataURL) {
-            lastCapturedImage = dataURL;
-            document.getElementById('hint').classList.add('hidden');
-            document.getElementById('analysis-box').classList.remove('hidden');
-            document.getElementById('analysis-box').classList.add('animate-pulse');
-            document.getElementById('scan-bar').style.opacity = '1';
-            
-            // --- PRÉ-PROCESSAMENTO: BINARIZAÇÃO AGRESSIVA ---
-            const precanvas = document.getElementById('processed-preview');
-            const prectx = precanvas.getContext('2d');
+        async function preprocessImage(dataURL) {
+            // Binarização: converte para P&B puro de alto contraste
             const img = new Image();
             img.src = dataURL;
             await new Promise(r => img.onload = r);
-            
-            precanvas.width = img.width; precanvas.height = img.height;
-            precanvas.classList.remove('hidden'); // MOSTRA O QUE A IA VÊ
 
-            prectx.filter = 'grayscale(100%) contrast(300%) brightness(80%)';
-            prectx.drawImage(img, 0, 0);
-            
-            const processedDataURL = precanvas.toDataURL('image/png');
+            const canvas = document.getElementById('processed-preview');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
 
-            document.getElementById('ocr-loading').innerText = "Iniciante leitura geométrica de sensores...";
-            const processingSteps = [
-                "Filtro de Contraste: Isolando caracteres...",
-                "Binarização: Refinando bordas numéricas...",
-                "Mapeamento de Contexto: Diferenciando fatores..."
-            ];
-            
-            let stepIdx = 0;
-            const stepInterval = setInterval(() => {
-                if(stepIdx < processingSteps.length) {
-                    document.getElementById('ocr-loading').innerText = processingSteps[stepIdx];
-                    stepIdx++;
-                } else { clearInterval(stepInterval); }
-            }, 600);
+            // Filtro agressivo para realçar traços
+            ctx.filter = 'grayscale(100%) contrast(400%) brightness(70%)';
+            ctx.drawImage(img, 0, 0);
 
-            // OCR Avançado com Análise de Geometria (Coordenadas)
-            const result = await Tesseract.recognize(processedDataURL, 'eng', {
-                tessedit_char_whitelist: '0123456789+-*/()=sqrt√xyz^¹²³'
-            });
-            
-            const symbols = result.data.symbols;
-            let finalMathString = "";
-            let prevBox = null;
+            document.getElementById('processed-container').classList.remove('hidden');
+            return canvas.toDataURL('image/png');
+        }
 
-            // --- Lógica de Interpretação Geométrica (Interpretador de Estrutura) ---
-            for (let i = 0; i < symbols.length; i++) {
-                const s = symbols[i];
-                const char = s.text.toLowerCase();
-                const box = s.bbox; // {x0, y0, x1, y1}
+        async function runScan() {
+            if (!lastImage) { alert("Selecione uma imagem primeiro!"); return; }
 
-                if (prevBox) {
-                    // Se o caractere atual estiver significativamente acima do anterior
-                    // e for menor, tratamos como expoente (potência)
-                    const isHigher = box.y0 < (prevBox.y0 - (prevBox.y1 - prevBox.y0) * 0.2);
-                    const isSmaller = (box.y1 - box.y0) < (prevBox.y1 - prevBox.y0) * 0.95;
+            // UI – estado de scanning
+            document.getElementById('scan-bar').style.opacity = '1';
+            document.getElementById('hint-panel').classList.add('hidden');
+            document.getElementById('result-box').classList.add('hidden');
+            document.getElementById('analysis-box').classList.remove('hidden');
+            document.getElementById('solve-btn').classList.add('hidden');
+            document.getElementById('detected-text').value = "";
+            const status = document.getElementById('ocr-status');
 
-                    if (isHigher && (isSmaller || !isNaN(char))) {
-                        finalMathString += "**"; 
+            try {
+                status.textContent = "🔬 Aplicando filtro de binarização...";
+                const processed = await preprocessImage(lastImage);
+
+                status.textContent = "👁 Tesseract lendo caracteres matemáticos...";
+                
+                // Tesseract com whitelist estrita
+                const result = await Tesseract.recognize(processed, 'eng', {
+                    tessedit_char_whitelist: '0123456789+-*/()=xyz^¹²³.√ '
+                });
+
+                // Análise geométrica por caractere (detecta expoentes via posição Y)
+                let mathStr = "";
+                let prevBox = null;
+                const syms = result.data.symbols || [];
+
+                status.textContent = `🧮 Analisando geometria de ${syms.length} caracteres...`;
+
+                for (const s of syms) {
+                    const ch = s.text;
+                    const box = s.bbox;
+                    if (!ch.trim()) continue;
+
+                    if (prevBox) {
+                        const prevH = prevBox.y1 - prevBox.y0;
+                        const curH  = box.y1  - box.y0;
+                        // Se o caractere atual está acima (y menor) E é menor que o anterior
+                        const isAbove   = box.y0 < prevBox.y0 - prevH * 0.25;
+                        const isSmaller = curH    < prevH    * 0.85;
+                        if (isAbove && isSmaller) {
+                            mathStr += "**";
+                        }
                     }
+                    mathStr += ch;
+                    prevBox = box;
                 }
 
-                finalMathString += char;
-                prevBox = box;
+                // Limpeza final – mantém apenas chars matemáticos válidos
+                let cleaned = mathStr
+                    .replace(/\n+/g, " ")
+                    .replace(/[^0-9+\-*/()=xyz^¹²³.√ ]/gi, "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+                // Se veio vazio (OCR falhou), usa o texto bruto do resultado
+                if (!cleaned) {
+                    cleaned = result.data.text
+                        .replace(/[^0-9+\-*/()=xyz^¹²³.√ ]/gi, "")
+                        .replace(/\s+/g, " ")
+                        .trim();
+                }
+
+                lastRawRead = cleaned;
+                document.getElementById('detected-text').value = cleaned;
+                document.getElementById('scan-bar').style.opacity = '0';
+                status.textContent = "✅ Leitura concluída. Corrija se necessário e clique em confirmar.";
+                document.getElementById('solve-btn').classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                status.textContent = "❌ Erro no OCR: " + err.message;
+                document.getElementById('scan-bar').style.opacity = '0';
             }
-
-            // Tratamento de Ambiguidade e Sanitização Final
-            let cleanedText = finalMathString
-                .replace(/s/g, "5")  // 'S' vira '5'
-                .replace(/o/g, "0")  // 'O' vira '0'
-                .replace(/i|l/g, "1") // 'I' ou 'l' vira '1'
-                .replace(/[^0-9+\-*/().√=sqrtxyz^¹²³]/g, "") 
-                .trim();
-            
-            rawIALeading = cleanedText;
-
-            document.getElementById('detected-text').value = cleanedText;
-            document.getElementById('analysis-box').classList.remove('animate-pulse');
-            document.getElementById('ocr-loading').innerText = "IA concluiu a leitura geométrica.";
-            document.getElementById('scan-bar').style.opacity = '0';
-            document.getElementById('final-res').classList.remove('hidden');
         }
 
         async function saveAndSolve() {
-            const correctedText = document.getElementById('detected-text').value;
-            const resVal = document.getElementById('answer-val');
-            const btn = document.querySelector("#final-res button");
+            const corrected = document.getElementById('detected-text').value.trim();
+            if (!corrected) { alert("Campo de texto vazio! Corrija o que a IA leu."); return; }
 
-            if (!correctedText) return alert("IA não detectou nada. Tente digitar a conta.");
-
-            btn.innerText = "IA PROCESSANDO...";
+            const btn = document.getElementById('solve-btn');
+            btn.textContent = "⏳ Processando...";
             btn.disabled = true;
 
+            const answerEl   = document.getElementById('answer-val');
+            const explanEl   = document.getElementById('explanation-val');
+            const resultBox  = document.getElementById('result-box');
+
             try {
-                const res = await fetch("http://localhost:8000/aprender", {
+                const res = await fetch(`${HUB}/aprender`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        image_data: lastCapturedImage,
-                        ia_read: rawIALeading,
-                        user_corrected: correctedText
+                        image_data: lastImage,
+                        ia_read: lastRawRead,
+                        user_corrected: corrected
                     })
                 });
-                
-                const data = await res.json();
-                
-                const mathData = data.result; // O backend agora retorna answer e explanation
 
-                if (mathData && mathData.answer) {
-                    resVal.innerText = mathData.answer;
-                    document.getElementById('explanation-val').innerText = mathData.explanation || "";
-                    document.getElementById('explanation-val').classList.remove('hidden');
-                    
-                    resVal.classList.add('text-cyan-400');
-                    resVal.classList.remove('text-red-500');
+                const data = await res.json();
+                const mathResult = data.result;
+
+                answerEl.textContent = mathResult?.answer ?? "?";
+                answerEl.className = "text-5xl font-bold math-font break-all px-4 " +
+                    (mathResult?.answer === "ERRO" ? "text-red-500" : "text-cyan-400");
+
+                if (mathResult?.explanation) {
+                    explanEl.textContent = mathResult.explanation;
+                    explanEl.classList.remove('hidden');
                 } else {
-                    throw new Error("Resposta vazia");
+                    explanEl.classList.add('hidden');
                 }
-            } catch (e) {
-                console.error("Erro no Hub:", e);
-                // Fallback: Tenta resolver localmente se o Hub falhar
+
+                resultBox.classList.remove('hidden');
+                resultBox.classList.add('flex', 'flex-col');
+
+            } catch (err) {
+                // Fallback: calcula localmente
                 try {
-                    const localResult = eval(correctedText.replace(/[xX]/g, "*").replace(/÷/g, "/").replace(/√|sqrt/g, "Math.sqrt").replace(/=/g, ""));
-                    resVal.innerText = localResult;
-                    resVal.classList.add('text-zinc-400'); // Cor diferente para indicar local
-                } catch (localErr) {
-                    resVal.innerText = "ERRO";
-                    resVal.classList.add('text-red-500');
+                    const localExpr = corrected
+                        .replace(/²/g, "**2").replace(/³/g, "**3")
+                        .replace(/[xX×]/g, "*").replace(/÷/g, "/")
+                        .replace(/=/g, "").replace(/[^0-9+\-*/\s().]/g, "");
+                    const localResult = eval(localExpr);
+                    answerEl.textContent = localResult;
+                    answerEl.className = "text-5xl font-bold math-font text-zinc-300 break-all px-4";
+                    explanEl.textContent = "⚠ Hub offline – resultado calculado localmente.";
+                    explanEl.classList.remove('hidden');
+                } catch {
+                    answerEl.textContent = "ERRO";
+                    answerEl.className = "text-5xl font-bold math-font text-red-500";
+                    explanEl.textContent = "Hub offline e cálculo local também falhou. Reinicie o app.py.";
+                    explanEl.classList.remove('hidden');
                 }
+                resultBox.classList.remove('hidden');
             } finally {
-                btn.innerText = "SALVAR APRENDIZADO & RESOLVER";
+                btn.textContent = "💾 CONFIRMAR TEXTO E RESOLVER";
                 btn.disabled = false;
             }
         }
-
-        // Monitoring Connection (Heartbeat)
-        setInterval(async () => {
-            const badge = document.getElementById("status");
-            try {
-                const res = await fetch("http://localhost:8000/health");
-                if (res.ok) {
-                    badge.innerHTML = '<div class="w-2 h-2 rounded-full bg-cyan-500"></div> Hub Online';
-                    badge.classList.remove('text-red-500');
-                    badge.classList.add('text-cyan-500');
-                }
-            } catch {
-                badge.innerHTML = '<div class="w-2 h-2 rounded-full bg-red-500"></div> Hub Offline';
-                badge.classList.add('text-red-500');
-                badge.classList.remove('text-cyan-500');
-            }
-        }, 4000);
     </script>
 </body>
 </html>

@@ -2,6 +2,7 @@ import asyncio
 import os
 import base64
 import json
+import re
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
@@ -9,9 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 import logging
-import sympy
 
-# Antigravity Math & Learning Hub
 logging.basicConfig(level=logging.INFO, format='[MATH-HUB] %(asctime)s | %(message)s')
 logger = logging.getLogger("MathHub")
 
@@ -24,123 +23,92 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pastas de Aprendizado
 TRAINING_DIR = "dataset_treinamento"
 LOG_FILE = "aprendizado_ia.json"
-
-for d in [TRAINING_DIR]:
-    if not os.path.exists(d):
-        os.makedirs(d)
+os.makedirs(TRAINING_DIR, exist_ok=True)
 
 class LearnData(BaseModel):
     image_data: str
     ia_read: str
     user_corrected: str
 
-class SimpleSolve(BaseModel):
-    expression: str
+def normalize(expr: str) -> str:
+    """Normaliza a expressão lida pelo OCR para Python/Sympy."""
+    e = expr.strip()
+    # Superscripts unicode -> **N
+    e = e.replace("¹", "**1").replace("²", "**2").replace("³", "**3")
+    # Símbolos alternativos
+    e = e.replace("÷", "/").replace(",", ".").replace("^", "**")
+    # Raiz quadrada
+    e = e.replace("√", "sqrt")
+    return e
 
-# --- Motor de Cálculo Real ---
-def calculate_expression(expr):
-    """Resolve a conta matemática de forma segura"""
+def prepare_for_sympy(expr: str) -> str:
+    """Converte expressão normalizada para sintaxe Sympy."""
+    e = expr
+    # 2x -> 2*x  |  (x+3)2 -> (x+3)**2  |  x2 -> x**2
+    e = re.sub(r'(\d)([a-z])', r'\1*\2', e)
+    e = re.sub(r'\)(\d+)', r')**\1', e)
+    e = re.sub(r'([a-z])(\d+)', r'\1**\2', e)
+    # Espaços entre ) e número  e  letra e número
+    e = re.sub(r'\)\s+(\d+)', r')**\1', e)
+    e = re.sub(r'([a-z])\s+(\d+)', r'\1**\2', e)
+    return e
+
+def calculate_expression(expr: str) -> dict:
+    """Resolve qualquer expressão matemática: aritmética, equação ou incógnita."""
     try:
-        # 1. Normalização Inicial
-        # Guardamos a expressão original para splitar no '=' depois
-        raw_expr = expr.replace("÷", "/").replace(",", ".").replace("^", "**").replace("¹", "**1").replace("²", "**2").replace("³", "**3").strip()
-        
-        # 2. Suporte para Raiz Quadrada
-        if "√" in raw_expr or "sqrt" in raw_expr:
-            import math
-            raw_expr = raw_expr.replace("√", "math.sqrt(").replace("sqrt", "math.sqrt(") + ")"
-            
-        # 3. Suporte para Porcentagem
-        if "%" in raw_expr:
-            raw_expr = raw_expr.replace("%", "/100")
+        raw = normalize(expr)
+        logger.info(f"Expressão normalizada: {raw}")
 
-        # 4. Cálculo de Álgebra e Aritmética
-        from fractions import Fraction
-        
-        # Verifica se há incógnitas (x, y, z)
-        has_variable = any(var in raw_expr for var in ['x', 'y', 'z'])
-        
-        if has_variable or "=" in raw_expr:
-            # Lógica Algébrica (Sympy)
-            from sympy import symbols, solve, Eq, sympify
-            x_sym, y_sym, z_sym = symbols('x y z')
-            
-            # Divide em lados da equação
-            parts = raw_expr.split("=") if "=" in raw_expr else [raw_expr, "0"]
-            if len(parts) < 2: parts = [raw_expr, "0"]
-            
-            # Prepara a string para o sympy (ex: 2x -> 2*x, (x+3)2 -> (x+3)**2, x2 -> x**2)
-            proc_parts = []
-            import re
-            for p in parts:
-                p_proc = p.strip()
-                # 1. Transforma 2x em 2*x
-                p_proc = re.sub(r'(\d)([xyz])', r'\1*\2', p_proc)
-                # 2. Transforma )2 em )**2 (caso Tesseract não pegue o ^)
-                p_proc = re.sub(r'(\))(\d+)', r'\1**\2', p_proc)
-                # 3. Transforma x2 em x**2
-                p_proc = re.sub(r'([xyz])(\d+)', r'\1**\2', p_proc)
-                # 4. Trata espaços entre número e potência (ex: (x+3) 2)
-                p_proc = re.sub(r'(\))\s+(\d+)', r'\1**\2', p_proc)
-                p_proc = re.sub(r'([xyz])\s+(\d+)', r'\1**\2', p_proc)
-                
-                proc_parts.append(p_proc)
+        has_var = bool(re.search(r'[a-z]', raw))
+        has_eq  = "=" in raw
 
-            # Tenta resolver com passos (Lógica Pedagógica)
-            lhs = sympify(proc_parts[0], locals={"x": x_sym, "y": y_sym, "z": z_sym})
-            rhs = sympify(proc_parts[1], locals={"x": x_sym, "y": y_sym, "z": z_sym})
-            
-            # 1. Gera a Equação Completa
-            equation = Eq(lhs, rhs)
-            solutions = solve(equation)
-            
-            # 2. Constrói o Passo a Passo
+        if has_var or has_eq:
+            from sympy import symbols, solve, Eq, sympify, expand
+            x, y, z = symbols('x y z')
+            sym_locals = {"x": x, "y": y, "z": z, "sqrt": __import__("sympy").sqrt}
+
+            sides = raw.split("=", 1) if has_eq else [raw, "0"]
+            lhs_str = prepare_for_sympy(sides[0].strip())
+            rhs_str = prepare_for_sympy(sides[1].strip()) if len(sides) > 1 else "0"
+
+            logger.info(f"Sympy LHS: {lhs_str}  |  RHS: {rhs_str}")
+
+            lhs = sympify(lhs_str, locals=sym_locals)
+            rhs = sympify(rhs_str, locals=sym_locals)
+
             steps = []
-            steps.append(f"• Equação Origem: {lhs} = {rhs}")
-            
-            # Se for quadrática: (x+3)^2 = 4 -> x^2 + 6x + 9 = 4
-            expanded_lhs = lhs.expand()
-            if expanded_lhs != lhs:
-                steps.append(f"• Passo 1: Expandindo parênteses -> {expanded_lhs} = {rhs}")
-            
-            steps.append(f"• Passo Final: Isolando a incógnita para resolver.")
-            
+            steps.append(f"• Equação Original: {lhs} = {rhs}")
+
+            expanded = expand(lhs)
+            if expanded != lhs:
+                steps.append(f"• Expandindo: {expanded} = {rhs}")
+
+            solutions = solve(Eq(lhs, rhs))
+            steps.append(f"• Isolando a incógnita...")
+            steps.append(f"• Solução encontrada: {solutions}")
+
             return {
-                "answer": f"{solutions}",
+                "answer": str(solutions),
                 "explanation": "\n".join(steps)
             }
-        
-        # 5. Lógica Aritmética Normal (Fallback)
-        # Remove '=' apenas para o eval final se sobrou algo
-        clean_expr_final = raw_expr.replace("=", "")
+
+        # --- Aritmética simples ---
         import math
-        allowed_chars = "0123456789+-*/(). math.sqrt"
-        clean_expr = "".join([c for c in clean_expr_final if c in allowed_chars])
-        
-        result = eval(clean_expr, {"math": math})
-        
-        explan = "Lógica Aritmética de Sensores"
-        # Simplificação de frações
-        if "/" in expr and result % 1 != 0:
-            f = Fraction(result).limit_denominator()
-            final_res = f"{round(result, 2)} (ou {f})"
-            explan = "Frações detectadas e simplificadas automaticamente."
-        else:
-            final_res = str(round(result, 2))
-            
+        clean = normalize(expr).replace("=", "")
+        clean = re.sub(r'[^0-9+\-*/().\s]', '', clean.replace("sqrt", "math.sqrt"))
+        result = eval(clean, {"math": math, "__builtins__": {}})
+
         return {
-            "answer": final_res,
-            "explanation": explan
+            "answer": str(round(result, 4)),
+            "explanation": f"• Cálculo direto: {clean} = {result}"
         }
+
     except Exception as e:
         logger.error(f"Erro no cálculo: {e}")
-        return {
-            "answer": "ERRO",
-            "explanation": f"Não foi possível processar: {e}"
-        }
+        return {"answer": "ERRO", "explanation": str(e)}
+
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_frontend():
@@ -153,44 +121,31 @@ async def health():
 
 @app.post("/aprender")
 async def learn_from_user(data: LearnData):
-    """Salva a correção do usuário para treinar a IA futuramente"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
     try:
-        # Salva a imagem para o dataset
         header, encoded = data.image_data.split(",", 1)
         img_bytes = base64.b64decode(encoded)
-        img_filename = f"revisar_{timestamp}.png"
-        img_path = os.path.join(TRAINING_DIR, img_filename)
-        
+        img_path = os.path.join(TRAINING_DIR, f"revisar_{timestamp}.png")
         with open(img_path, "wb") as f:
             f.write(img_bytes)
 
-        # Registra a correção no log
         log_entry = {
             "timestamp": timestamp,
-            "imagem": img_filename,
+            "imagem": f"revisar_{timestamp}.png",
             "ia_leu": data.ia_read,
             "usuario_corrigiu": data.user_corrected,
             "precisava_corrigir": data.ia_read != data.user_corrected
         }
-        
         with open(LOG_FILE, "a") as f:
-            f.write(json.dumps(log_entry) + "\n")
+            f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
 
-        # Resolve a conta corrigida
         resultado = calculate_expression(data.user_corrected)
-        
-        logger.info(f"APRENDIZADO: Usuário corrigiu '{data.ia_read}' para '{data.user_corrected}'. Resultado: {resultado}")
-        
-        return {
-            "status": "learned",
-            "result": resultado,
-            "message": "Dados salvos para treinamento!"
-        }
+        logger.info(f"APRENDIZADO: '{data.ia_read}' -> '{data.user_corrected}' | Resultado: {resultado['answer']}")
+
+        return {"status": "learned", "result": resultado}
     except Exception as e:
         logger.error(f"Erro no aprendizado: {e}")
-        raise HTTPException(status_code=500, detail="Erro ao salvar dados de aprendizado")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
