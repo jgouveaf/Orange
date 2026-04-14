@@ -256,35 +256,50 @@
             const canvas = document.getElementById('processed-preview');
             const ctx = canvas.getContext('2d');
             
-            // Fator de Escala Ultra: 3.0 para capturar detalhes minúsculos de expoentes
-            const scale = 3.0;
+            const scale = 2.5; 
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
-            const threshold = 40; // Sensibilidade: qualquer coisa que não seja quase branco vira preto
+            const grays = new Uint8Array(data.length / 4);
 
-            // 1. Binarização por Distância de Cor (Captura azul, vermelho, etc.)
             for (let i = 0; i < data.length; i += 4) {
-                const r = data[i], g = data[i+1], b = data[i+2];
-                const dist = Math.sqrt((255-r)**2 + (255-g)**2 + (255-b)**2);
-                const val = (dist > threshold) ? 0 : 255;
+                grays[i/4] = (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
+            }
+
+            // ALGORITMO DE OTSU: Binarização adaptativa para fundos coloridos
+            const hist = new Array(256).fill(0);
+            for (let v of grays) hist[v]++;
+            let total = grays.length, sum = 0;
+            for (let i = 0; i < 256; i++) sum += i * hist[i];
+            let sumB = 0, wB = 0, wF = 0, maxVar = 0, threshold = 0;
+            for (let i = 0; i < 256; i++) {
+                wB += hist[i]; if (wB === 0) continue;
+                wF = total - wB; if (wF === 0) break;
+                sumB += i * hist[i];
+                let mB = sumB / wB, mF = (sum - sumB) / wF;
+                let varBetween = wB * wF * (mB - mF) * (mB - mF);
+                if (varBetween > maxVar) { maxVar = varBetween; threshold = i; }
+            }
+
+            // Aplica binarização (com margem de segurança)
+            for (let i = 0; i < data.length; i += 4) {
+                const val = (grays[i/4] < threshold - 10) ? 0 : 255;
                 data[i] = data[i+1] = data[i+2] = val;
             }
 
-            // 2. Filtro de Dilatação (Engrossa os traços para ajudar o OCR a ver letras finas/itálico)
+            // Dilatação 2x2: Engrossa sem distorcer
             const dilated = new Uint8ClampedArray(data.length);
-            const w = canvas.width;
-            const h = canvas.height;
-            for (let y = 1; y < h - 1; y++) {
-                for (let x = 1; x < w - 1; x++) {
+            const w = canvas.width, h = canvas.height;
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
                     let minVal = 255;
-                    // Procura por preto nos vizinhos 3x3
-                    for (let dy = -1; dy <= 1; dy++) {
-                        for (let dx = -1; dx <= 1; dx++) {
-                            const idx = ((y + dy) * w + (x + dx)) * 4;
+                    for (let dy = 0; dy <= 1; dy++) {
+                        for (let dx = 0; dx <= 1; dx++) {
+                            const ny = Math.min(h-1, y+dy), nx = Math.min(w-1, x+dx);
+                            const idx = (ny * w + nx) * 4;
                             if (data[idx] < minVal) minVal = data[idx];
                         }
                     }
@@ -295,7 +310,6 @@
             }
             
             ctx.putImageData(new ImageData(dilated, w, h), 0, 0);
-
             document.getElementById('processed-container').classList.remove('hidden');
             return canvas.toDataURL('image/png');
         }
@@ -318,52 +332,54 @@
                 status.textContent = "👁 Analisando geometria e caracteres...";
                 
                 const result = await Tesseract.recognize(processed, 'eng', {
-                    tessedit_char_whitelist: '0123456789+-*/()=xyz^¹²³.√ ',
-                    tessedit_pageseg_mode: '6' // Assume bloco uniforme (ajuda a ligar x com seu expoente)
+                    tessedit_char_whitelist: '0123456789+-*/()=xyz^¹²³.√!#%&_ ',
+                    tessedit_pageseg_mode: '6' 
                 });
 
                 let mathStr = "";
-                let prevBox = null;
-                const syms = result.data.symbols || [];
+                const syms = (result.data.symbols || []).filter(s => s.text.trim());
+                
+                if (syms.length > 0) {
+                    // 1. Calcula a linha de base média (bottom Y) e altura média da linha
+                    let avgBottom = syms.reduce((acc, s) => acc + s.bbox.y1, 0) / syms.length;
+                    let avgHeight = syms.reduce((acc, s) => acc + (s.bbox.y1 - s.bbox.y0), 0) / syms.length;
 
-                for (const s of syms) {
-                    let ch = s.text;
-                    const box = s.bbox;
-                    if (!ch.trim()) continue;
+                    for (let i = 0; i < syms.length; i++) {
+                        const s = syms[i];
+                        let ch = s.text;
+                        const box = s.bbox;
+                        const h = box.y1 - box.y0;
 
-                    if (prevBox) {
-                        const prevH = prevBox.y1 - prevBox.y0;
-                        const curH  = box.y1  - box.y0;
-                        
-                        // CALIBRAÇÃO DE POTÊNCIA: 
-                        // 1. Está acima da linha de base do anterior?
-                        // 2. É significativamente menor?
-                        const isAbove = box.y0 < prevBox.y0 - (prevH * 0.1); 
-                        const isLikelyPowerChar = ["2", "3", "1", "o", "z", "4"].includes(ch.toLowerCase());
+                        // 2. Lógica de Potência (Superscript)
+                        // É potência se o pé do caractere (y1) estiver significativamente acima da base média
+                        const isHigh = box.y1 < avgBottom - (avgHeight * 0.35);
 
-                        if (isAbove && (curH < prevH || isLikelyPowerChar)) {
-                            mathStr += "**";
-                            // Correção de erro comum: Tesseract lê expoente 2 como 4 ou z
-                            if (ch === "4" || ch.toLowerCase() === "z") ch = "2";
+                        if (isHigh) {
+                            // Adiciona o operador de potência apenas na transição para o alto
+                            if (i > 0 && !mathStr.endsWith("**")) {
+                                mathStr += "**";
+                            }
+                            // Correções agressivas de OCR específicas para expoentes
+                            if (["4", "z", "a", "7", "o", "q"].includes(ch.toLowerCase())) ch = "2";
+                            if (["9", "g", "8"].includes(ch.toLowerCase())) ch = "3";
                         }
+
+                        mathStr += ch;
                     }
-                    mathStr += ch;
-                    prevBox = box;
                 }
 
                 // Limpeza final e heurísticas de correção ultra-focadas
                 let cleaned = mathStr
                     .replace(/\n+/g, " ")
-                    .replace(/[^0-9+\-*/()=xyz^¹²³.√ ]/gi, "")
+                    .replace(/[^0-9+\-*/()=xyz^¹²³.√!#%&_ ]/gi, "")
                     .replace(/\s+/g, " ")
-                    // Heurística de ouro: se temos um número seguido de ** e um erro comum, deve ser potenciação
-                    .replace(/([0-9xyz])\*\*([4z7oa])/g, "$1**2") 
-                    // Se o X falhou e sobrou apenas 4**2, tentamos recuperar o X se houver um padrão de incógnita
-                    .replace(/([0-9])\*\*([0-9])/g, (m, p1, p2) => {
-                         // Se for algo como 4**2 em uma equação onde x aparece depois, 
-                         // provavelmente era 4x**2. Mas para ser conservador, mantemos o que a IA viu se for coerente.
-                         return p1 + "**" + p2;
+                    // Heurística de potência colada (ex: x2 -> x**2)
+                    .replace(/([xyz])([234z])/g, (m, p1, p2) => {
+                        let exp = ["4", "z"].includes(p2) ? "2" : p2;
+                        return p1 + "**" + exp;
                     })
+                    // Corrige falta de operador entre número e letra (ex: 4x -> 4*x)
+                    .replace(/(\d)([xyz])/g, "$1$2") // O backend app.py já trata isso se necessário
                     .trim();
 
                 // Se veio vazio (OCR falhou), usa o texto bruto do resultado
