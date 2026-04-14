@@ -164,18 +164,37 @@
                     <p class="text-[10px] text-amber-500 font-semibold">⚠ Imagem simples com a conta apenas</p>
                 </div>
 
-                <!-- Drop Zone / Preview -->
-                <div id="drop-zone" onclick="document.getElementById('file-input').click()"
-                    class="relative rounded-xl bg-zinc-900/80 border-2 border-dashed border-zinc-700 hover:border-cyan-500 transition-colors cursor-pointer overflow-hidden aspect-video flex flex-col items-center justify-center">
-                    <div id="drop-placeholder" class="text-center space-y-3 px-8">
+                <!-- Drop Zone / Media Area -->
+                <div id="media-area" class="relative rounded-xl bg-zinc-900/80 border-2 border-dashed border-zinc-700 hover:border-cyan-500 transition-colors overflow-hidden aspect-video flex flex-col items-center justify-center">
+                    
+                    <!-- Estado Inicial: Upar Imagem -->
+                    <div id="drop-placeholder" onclick="document.getElementById('file-input').click()" class="cursor-pointer text-center space-y-3 px-8 w-full h-full flex flex-col items-center justify-center hover:bg-white/5 transition-colors z-10">
                         <div class="text-5xl text-zinc-700">📄</div>
-                        <p class="text-zinc-500 text-sm">Clique para enviar uma imagem</p>
+                        <p class="text-zinc-500 text-sm">Clique para enviar uma imagem ou abra a webcam</p>
                         <p class="text-zinc-600 text-xs">JPG, PNG, WebP</p>
                     </div>
-                    <img id="img-preview" class="hidden absolute inset-0 w-full h-full object-contain bg-zinc-900"
-                        src="" alt="Preview">
-                    <div id="scan-bar" class="scan-line"></div>
+
+                    <!-- Imagem Preview -->
+                    <img id="img-preview" onclick="document.getElementById('file-input').click()" class="hidden cursor-pointer absolute inset-0 w-full h-full object-contain bg-zinc-900 z-10" src="" alt="Preview">
+                    
+                    <!-- Scanner Animation -->
+                    <div id="scan-bar" class="scan-line z-20"></div>
+
+                    <!-- Webcam UI -->
+                    <div id="webcam-container" class="hidden absolute inset-0 w-full h-full bg-black z-30 flex flex-col">
+                        <video id="webcam-video" autoplay playsinline class="flex-1 w-full h-full object-cover"></video>
+                        <div class="absolute bottom-4 inset-x-0 flex justify-center gap-4 px-4 z-40">
+                            <button onclick="captureWebcam()" class="bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center gap-2">📸 CAPTURAR</button>
+                            <button onclick="stopWebcam()" class="bg-red-600/80 hover:bg-red-500 p-3 rounded-xl text-white backdrop-blur-md transition-all">❌</button>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="flex gap-3">
+                    <button onclick="document.getElementById('file-input').click()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl font-bold text-xs transition-colors text-white">📁 CARREGAR ARQUIVO</button>
+                    <button onclick="startWebcam()" id="btn-webcam" class="flex-1 bg-black hover:bg-cyan-900 hover:text-white py-3 rounded-xl font-bold text-xs transition-colors text-cyan-500 border border-cyan-700">📷 ABRIR WEBCAM</button>
+                </div>
+
                 <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(this)">
 
                 <!-- Processed Preview -->
@@ -352,6 +371,62 @@
             if (!res.ok) throw new Error('Gemini indisponível');
             const data = await res.json();
             return data.text;
+        }
+
+        let webcamStream = null;
+
+        async function startWebcam() {
+            const container = document.getElementById('webcam-container');
+            const video = document.getElementById('webcam-video');
+            
+            try {
+                webcamStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = webcamStream;
+                container.classList.remove('hidden');
+                document.getElementById('drop-placeholder').classList.add('hidden');
+                document.getElementById('img-preview').classList.add('hidden');
+            } catch (err) {
+                alert("Erro ao acessar a webcam: " + err.message);
+                console.error(err);
+            }
+        }
+
+        function stopWebcam() {
+            const container = document.getElementById('webcam-container');
+            const video = document.getElementById('webcam-video');
+            
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                webcamStream = null;
+            }
+            container.classList.add('hidden');
+            
+            if (lastImage) {
+                document.getElementById('img-preview').classList.remove('hidden');
+            } else {
+                document.getElementById('drop-placeholder').classList.remove('hidden');
+            }
+        }
+
+        async function captureWebcam() {
+            const video = document.getElementById('webcam-video');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const dataURL = canvas.toDataURL('image/png');
+            lastImage = dataURL;
+            
+            stopWebcam();
+            
+            const preview = document.getElementById('img-preview');
+            preview.src = dataURL;
+            preview.classList.remove('hidden');
+            
+            await runScan();
         }
 
         async function handleFile(input) {
