@@ -36,3 +36,4 @@
 {"ts": "20260414_163156", "ia": "2(3x+1)**-3(6-2x)=20", "user": "2(3x+1)-3(6-2x)=20", "res": "ERRO"}
 {"timestamp": "20260414_163757", "imagem": "revisar_20260414_163757.png", "ia_leu": "2(3x+1)**-3(6-2x)=20", "usuario_corrigiu": "2(3x+1)-3(6-2x)=20", "precisava_corrigir": true}
 {"timestamp": "20260414_163821", "imagem": "revisar_20260414_163821.png", "ia_leu": "4**+6x+4=0", "usuario_corrigiu": "4x²+6x+4=0", "precisava_corrigir": true}
+{"timestamp": "20260414_164633", "imagem": "revisar_20260414_164633.png", "ia_leu": "2(3x+1)**-3(6-2x)=20", "usuario_corrigiu": "2(3x+1)-3(6-2x)=20", "precisava_corrigir": true}
