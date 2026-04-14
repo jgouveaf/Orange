@@ -44,8 +44,8 @@ class SimpleSolve(BaseModel):
 def calculate_expression(expr):
     """Resolve a conta matemática de forma segura"""
     try:
-        # 1. Limpeza e Normalização
-        expr = expr.replace("x", "*").replace("÷", "/").replace(",", ".").replace("=", "").strip()
+        # 1. Normalização Inicial
+        expr = expr.replace("÷", "/").replace(",", ".").replace("=", "").replace("^", "**").strip()
         
         # 2. Suporte para Raiz Quadrada
         if "√" in expr or "sqrt" in expr:

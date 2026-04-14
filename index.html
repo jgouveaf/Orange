@@ -97,6 +97,7 @@
                     <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">÷</span><p class="text-[8px] text-zinc-600 mt-1">DIVISÃO</p></div>
                     <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">√</span><p class="text-[8px] text-zinc-600 mt-1">RAIZ</p></div>
                     <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">%</span><p class="text-[8px] text-zinc-600 mt-1">PERCENTUAL</p></div>
+                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">^</span><p class="text-[8px] text-zinc-600 mt-1">POTÊNCIA</p></div>
                 </div>
             </div>
         </div>
@@ -212,7 +213,7 @@
 
             // OCR Real via Tesseract.js (Com Whitelist Estrita e Imagem Processada)
             const { data: { text } } = await Tesseract.recognize(processedDataURL, 'eng', {
-                tessedit_char_whitelist: '0123456789+-*/()=sqrt√%xyz'
+                tessedit_char_whitelist: '0123456789+-*/()=sqrt√%xyz^'
             });
             
             // Tratamento de Ambiguidade e Sanitização (Ajuste Técnico)
@@ -220,7 +221,7 @@
                 .replace(/s/g, "5")  // 'S' vira '5'
                 .replace(/o/g, "0")  // 'O' vira '0'
                 .replace(/i|l/g, "1") // 'I' ou 'l' vira '1'
-                .replace(/[^0-9+\-*/().√%=sqrtxyz]/g, "") // Limpa lixo residual (INCLUI XYZ)
+                .replace(/[^0-9+\-*/().√%=sqrtxyz^]/g, "") // Limpa lixo residual (INCLUI ^)
                 .trim();
             
             rawIALeading = cleanedText;
