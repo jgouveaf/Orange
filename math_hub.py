@@ -42,9 +42,12 @@ def normalize(expr: str) -> str:
 
 def prepare_for_sympy(expr: str) -> str:
     e = expr
-    e = re.sub(r'(\d)\s*([xyz])', r'\1*\2', e)
+    # 1. 2x ou 2 x -> 2*x
+    e = re.sub(r'(\d)\s*([a-z])', r'\1*\2', e)
+    # 2. (x+3)2 -> (x+3)**2
     e = re.sub(r'\)\s*(\d+)', r')**\1', e)
-    e = re.sub(r'([xyz])\s*(\d+)', r'\1**\2', e)
+    # 3. MEMÓRIA ALVÉBRICA: Letra seguida de número (a2, x2, b3) -> Potência
+    e = re.sub(r'([a-z])\s*(\d+)', r'\1**\2', e)
     return e
 
 def calculate_expression(expr: str) -> dict:

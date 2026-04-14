@@ -256,11 +256,12 @@
                     if (prevBox) {
                         const prevH = prevBox.y1 - prevBox.y0;
                         const curH  = box.y1  - box.y0;
-                        // Sensibilidade aumentada: detecção de expoente mais agressiva
-                        const isAbove   = box.y0 < prevBox.y0 - prevH * 0.15;
-                        const isSmaller = curH    < prevH    * 0.95;
                         
-                        if (isAbove && isSmaller) {
+                        // CALIBRAÇÃO DE MEMÓRIA: Se o número está acima da média, é potência.
+                        const isAbove = box.y0 < prevBox.y0 - 5; // 5 pixels de folga já sinalizam potência
+                        const isLikelyPower = ["2", "3", "1", "o", "z"].includes(ch.toLowerCase());
+
+                        if (isAbove && (curH < prevH || isLikelyPower)) {
                             mathStr += "**";
                         }
                     }
