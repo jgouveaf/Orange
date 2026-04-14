@@ -66,17 +66,18 @@
         <!-- Scanner Area -->
         <div class="lg:col-span-12 xl:col-span-7 space-y-6">
             <div class="glass rounded-[2rem] p-4 relative overflow-hidden group shadow-2xl">
-                <div id="webcam-container" class="rounded-2xl overflow-hidden bg-zinc-900 aspect-video flex flex-col items-center justify-center relative border border-white/5">
-                    <div class="text-center space-y-4 px-8" id="placeholder">
-                        <div class="text-zinc-800 text-6xl">📄</div>
-                        <div class="space-y-2">
-                            <p class="text-cyan-500 text-xs font-bold uppercase tracking-widest">Aviso Importante</p>
-                            <p class="text-zinc-400 text-sm italic">"As imagens devem ser simples, nítidas e conter apenas as contas."</p>
+                    <div id="webcam-container" class="rounded-2xl overflow-hidden bg-zinc-900 aspect-video flex flex-col items-center justify-center relative border border-white/5">
+                        <div class="text-center space-y-4 px-8" id="placeholder">
+                            <div class="text-zinc-800 text-6xl">📄</div>
+                            <div class="space-y-2">
+                                <p class="text-cyan-500 text-xs font-bold uppercase tracking-widest">Aviso Importante</p>
+                                <p class="text-zinc-400 text-sm italic">"As imagens devem ser simples, nítidas e conter apenas as contas."</p>
+                            </div>
+                            <button onclick="initWebcam()" class="bg-cyan-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-cyan-600/20">ATIVAR SENSORES</button>
                         </div>
-                        <button onclick="initWebcam()" class="bg-cyan-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-cyan-600/20">ATIVAR SENSORES</button>
+                        <canvas id="processed-preview" class="absolute bottom-4 right-4 w-32 border border-cyan-500/50 rounded-lg hidden z-50"></canvas>
+                        <div id="scan-bar" class="scan-line"></div>
                     </div>
-                    <div id="scan-bar" class="scan-line"></div>
-                </div>
                 
                 <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-4 z-30">
                     <button onclick="solve()" id="solve-btn" class="bg-zinc-100 text-black px-10 py-4 rounded-2xl font-bold text-sm hover:scale-105 transition-transform active:scale-95 shadow-2xl">
@@ -182,21 +183,23 @@
             document.getElementById('analysis-box').classList.remove('hidden');
             document.getElementById('analysis-box').classList.add('animate-pulse');
             document.getElementById('scan-bar').style.opacity = '1';
-            document.getElementById('ocr-loading').innerText = "Aja como um motor de OCR Matemático...";
             
-            // --- PRÉ-PROCESSAMENTO: FILTRO DE ALTO CONTRASTE ---
-            // Isso transforma a imagem em preto e branco puro para facilitar a distinção dos números
-            const precanvas = document.createElement('canvas');
+            // --- PRÉ-PROCESSAMENTO: BINARIZAÇÃO AGRESSIVA ---
+            const precanvas = document.getElementById('processed-preview');
             const prectx = precanvas.getContext('2d');
             const img = new Image();
             img.src = dataURL;
             await new Promise(r => img.onload = r);
+            
             precanvas.width = img.width; precanvas.height = img.height;
-            prectx.filter = 'grayscale(100%) contrast(200%) brightness(80%)';
+            precanvas.classList.remove('hidden'); // MOSTRA O QUE A IA VÊ
+
+            prectx.filter = 'grayscale(100%) contrast(300%) brightness(80%)';
             prectx.drawImage(img, 0, 0);
+            
             const processedDataURL = precanvas.toDataURL('image/png');
 
-            // --- LOG DE PASSOS DO SISTEMA ---
+            document.getElementById('ocr-loading').innerText = "Iniciante leitura geométrica de sensores...";
             const processingSteps = [
                 "Filtro de Contraste: Isolando caracteres...",
                 "Binarização: Refinando bordas numéricas...",
