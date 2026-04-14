@@ -35,32 +35,32 @@ class LearnData(BaseModel):
 def normalize(expr: str) -> str:
     """Normaliza a expressão lida pelo OCR para Python/Sympy."""
     e = expr.strip()
-    # Superscripts unicode -> **N
+    # Expande potências unicode e formatos comuns
     e = e.replace("¹", "**1").replace("²", "**2").replace("³", "**3")
-    # Símbolos alternativos
-    e = e.replace("÷", "/").replace(",", ".").replace("^", "**")
-    # Raiz quadrada
+    e = e.replace("÷", "/").replace(",", ".").replace("×", "*").replace("^", "**")
     e = e.replace("√", "sqrt")
+    # Limpa apenas espaços duplos, mantém estrutura
+    e = re.sub(r'\s+', ' ', e)
     return e
 
 def prepare_for_sympy(expr: str) -> str:
     """Converte expressão normalizada para sintaxe Sympy."""
     e = expr
-    # 2x -> 2*x  |  (x+3)2 -> (x+3)**2  |  x2 -> x**2
-    e = re.sub(r'(\d)([a-z])', r'\1*\2', e)
-    e = re.sub(r'\)(\d+)', r')**\1', e)
-    e = re.sub(r'([a-z])(\d+)', r'\1**\2', e)
-    # Espaços entre ) e número  e  letra e número
-    e = re.sub(r'\)\s+(\d+)', r')**\1', e)
-    e = re.sub(r'([a-z])\s+(\d+)', r'\1**\2', e)
+    # 2x ou 2 x -> 2*x
+    e = re.sub(r'(\d)\s*([xyz])', r'\1*\2', e)
+    # (x+3)2 ou (x+3) 2 -> (x+3)**2
+    e = re.sub(r'\)\s*(\d+)', r')**\1', e)
+    # x2 ou x 2 -> x**2
+    e = re.sub(r'([xyz])\s*(\d+)', r'\1**\2', e)
     return e
 
 def calculate_expression(expr: str) -> dict:
     """Resolve qualquer expressão matemática: aritmética, equação ou incógnita."""
+    current_step = "Iniciando"
     try:
+        current_step = "Normalização de símbolos"
         raw = normalize(expr)
-        logger.info(f"Expressão normalizada: {raw}")
-
+        
         has_var = bool(re.search(r'[a-z]', raw))
         has_eq  = "=" in raw
 
@@ -69,26 +69,31 @@ def calculate_expression(expr: str) -> dict:
             x, y, z = symbols('x y z')
             sym_locals = {"x": x, "y": y, "z": z, "sqrt": __import__("sympy").sqrt}
 
+            current_step = "Divisão laterial da equação"
             sides = raw.split("=", 1) if has_eq else [raw, "0"]
+            
+            current_step = "Preparação algébrica (Sympy)"
             lhs_str = prepare_for_sympy(sides[0].strip())
             rhs_str = prepare_for_sympy(sides[1].strip()) if len(sides) > 1 else "0"
 
-            logger.info(f"Sympy LHS: {lhs_str}  |  RHS: {rhs_str}")
+            logger.info(f"Sympy LHS: {lhs_str} | RHS: {rhs_str}")
 
+            current_step = "Processamento simbólico (LHS)"
             lhs = sympify(lhs_str, locals=sym_locals)
+            current_step = "Processamento simbólico (RHS)"
             rhs = sympify(rhs_str, locals=sym_locals)
 
             steps = []
-            steps.append(f"• Equação Original: {lhs} = {rhs}")
+            steps.append(f"• Equação Detectada: {lhs} = {rhs}")
 
             expanded = expand(lhs)
             if expanded != lhs:
-                steps.append(f"• Expandindo: {expanded} = {rhs}")
+                steps.append(f"• Expansão Algébrica: {expanded} = {rhs}")
 
+            current_step = "Busca de soluções"
             solutions = solve(Eq(lhs, rhs))
-            steps.append(f"• Isolando a incógnita...")
-            steps.append(f"• Solução encontrada: {solutions}")
-
+            steps.append(f"• Resolvendo para incógnita...")
+            
             return {
                 "answer": str(solutions),
                 "explanation": "\n".join(steps)
@@ -96,18 +101,22 @@ def calculate_expression(expr: str) -> dict:
 
         # --- Aritmética simples ---
         import math
+        current_step = "Cálculo aritmético"
         clean = normalize(expr).replace("=", "")
         clean = re.sub(r'[^0-9+\-*/().\s]', '', clean.replace("sqrt", "math.sqrt"))
         result = eval(clean, {"math": math, "__builtins__": {}})
 
         return {
             "answer": str(round(result, 4)),
-            "explanation": f"• Cálculo direto: {clean} = {result}"
+            "explanation": f"• Operação: {clean}\n• Resultado: {result}"
         }
 
     except Exception as e:
-        logger.error(f"Erro no cálculo: {e}")
-        return {"answer": "ERRO", "explanation": str(e)}
+        logger.error(f"Erro em {current_step}: {e}")
+        return {
+            "answer": "ERRO",
+            "explanation": f"Falha no passo: {current_step}\nDetalhe: {str(e)}\n\nDica: Verifique se o texto lido acima está correto."
+        }
 
 
 @app.get("/", response_class=HTMLResponse)
