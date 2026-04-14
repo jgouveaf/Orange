@@ -43,25 +43,32 @@ class SimpleSolve(BaseModel):
 def calculate_expression(expr):
     """Resolve a conta matemática de forma segura"""
     try:
-        # Substitui símbolos visuais por operadores Python e remove o '='
-        expr = expr.replace("x", "*").replace("÷", "/").replace(",", ".").replace("=", "")
+        # 1. Limpeza e Normalização
+        expr = expr.replace("x", "*").replace("÷", "/").replace(",", ".").replace("=", "").strip()
         
-        # Suporte para Raiz Quadrada (√ ou sqrt)
+        # 2. Suporte para Raiz Quadrada
         if "√" in expr or "sqrt" in expr:
             import math
             expr = expr.replace("√", "math.sqrt(").replace("sqrt", "math.sqrt(") + ")"
             
-        # Suporte para Porcentagem (%)
+        # 3. Suporte para Porcentagem
         if "%" in expr:
             expr = expr.replace("%", "/100")
 
-        # Sanitização básica
+        # 4. Cálculo de Frações e Expressões
+        import math
+        from fractions import Fraction
+        
         allowed_chars = "0123456789+-*/(). math.sqrt"
         clean_expr = "".join([c for c in expr if c in allowed_chars])
         
-        # Resolve a expressão usando o contexto do math
-        import math
         result = eval(clean_expr, {"math": math})
+        
+        # Se for uma divisão exata que resultou em fração, simplificamos p/ o usuário
+        if "/" in expr and result % 1 != 0:
+            f = Fraction(result).limit_denominator()
+            return f"{result} (ou {f})"
+            
         return str(round(result, 2))
     except Exception as e:
         return "Erro de Cálculo"
