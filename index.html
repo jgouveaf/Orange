@@ -79,48 +79,54 @@
     <!-- Modal de Ajuda -->
     <div id="help-modal" class="modal fixed inset-0 z-[100] items-center justify-center p-6">
         <div class="glass max-w-lg w-full rounded-3xl p-8 shadow-2xl border-cyan-500/20">
-            <h2 class="text-2xl font-bold text-cyan-400 mb-4">Guia do MathAI Scanner</h2>
+            <h2 class="text-2xl font-bold text-cyan-400 mb-4">Guia de Limitações ✨</h2>
 
             <div class="space-y-6 text-sm">
-                <!-- Servidor -->
-                <div class="space-y-2">
-                    <p class="text-zinc-500 uppercase text-[10px] font-bold tracking-widest">⚙️ Servidor Local</p>
-                    <p class="text-zinc-400">Certifique-se de que o backend está ativo:</p>
-                    <div class="bg-black/60 p-3 rounded-xl font-mono text-cyan-400 border border-cyan-500/10 text-xs">
-                        python app.py
-                    </div>
-                </div>
+                <!-- Informações de Uso -->
+                <div class="space-y-4">
+                    <p class="text-zinc-500 uppercase text-[10px] font-bold tracking-widest">⚠️ Importante saber</p>
 
-                <!-- Dicas de Escrita -->
-                <div class="space-y-3">
-                    <p class="text-zinc-500 uppercase text-[10px] font-bold tracking-widest">✍️ Para ler o x²
-                        perfeitamente</p>
-                    <ul class="space-y-2 text-zinc-400 text-xs">
-                        <li class="flex gap-2"><span>✨</span>
-                            <p>Use <b>fundo branco</b> nítido e caneta escura.</p>
-                        </li>
-                        <li class="flex gap-2"><span>✨</span>
-                            <p>Escreva o <b>x</b> de forma simples (ex: <span class="math-font">x</span>).</p>
-                        </li>
-                        <li class="flex gap-2"><span>✨</span>
-                            <p>Deixe o <b>²</b> claramente menor e acima do x.</p>
-                        </li>
-                        <li class="flex gap-2"><span>✨</span>
-                            <p>Mantenha a câmera <b>paralela</b> ao papel.</p>
-                        </li>
-                    </ul>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="flex gap-3 items-start bg-white/5 p-3 rounded-xl border border-white/5">
+                            <span class="text-lg">🚫</span>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">Cores e Ruído</h4>
+                                <p class="text-[11px] text-zinc-400">A IA não lê textos coloridos. Use sempre **preto no
+                                    branco** para evitar erros.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 items-start bg-white/5 p-3 rounded-xl border border-white/5">
+                            <span class="text-lg">⚖️</span>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">Frações em pé</h4>
+                                <p class="text-[11px] text-zinc-400">Não escreva frações verticais. Use sempre a barra
+                                    <b>/</b> no mesmo nível (ex: 1/2).</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 items-start bg-white/5 p-3 rounded-xl border border-white/5">
+                            <span class="text-lg">⚡</span>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">Potências</h4>
+                                <p class="text-[11px] text-zinc-400">Para garantir o sucesso, use o sinal <b>^</b> (ex:
+                                    x^2). O sistema <b>consegue resolver</b>, mas a leitura é melhor assim.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10">
                     <p class="text-[10px] text-cyan-400 leading-relaxed font-medium italic">
-                        "Se a IA errar, corrija no campo 'IA leu'. Ela aprenderá com sua correção para as próximas
-                        vezes!"
+                        Dica: O servidor Python deve estar rodando no CMD/PowerShell com a sua API Key do Gemini para
+                        máxima precisão!
                     </p>
                 </div>
             </div>
 
             <button onclick="toggleHelp()"
-                class="mt-8 w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition-colors">ENTENDI</button>
+                class="mt-8 w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition-colors">ENTENDI OS
+                AVISOS</button>
         </div>
     </div>
 
