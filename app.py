@@ -72,15 +72,21 @@ def calculate_expression(expr):
             parts = raw_expr.split("=") if "=" in raw_expr else [raw_expr, "0"]
             if len(parts) < 2: parts = [raw_expr, "0"]
             
-            # Prepara a string para o sympy (ex: 2x -> 2*x, (x+3)2 -> (x+3)**2)
+            # Prepara a string para o sympy (ex: 2x -> 2*x, (x+3)2 -> (x+3)**2, x2 -> x**2)
             proc_parts = []
             import re
             for p in parts:
-                # Transforma 2x em 2*x
-                p_proc = re.sub(r'(\d)([xyz])', r'\1*\2', p)
-                # Transforma )2 em )**2 (caso Tesseract não pegue o ^)
-                p_proc = re.sub(r'(\))(\d)', r'\1**\2', p_proc)
-                # Garante que x sozinho não vire *x indevidamente, mas sympy entende x
+                p_proc = p.strip()
+                # 1. Transforma 2x em 2*x
+                p_proc = re.sub(r'(\d)([xyz])', r'\1*\2', p_proc)
+                # 2. Transforma )2 em )**2 (caso Tesseract não pegue o ^)
+                p_proc = re.sub(r'(\))(\d+)', r'\1**\2', p_proc)
+                # 3. Transforma x2 em x**2
+                p_proc = re.sub(r'([xyz])(\d+)', r'\1**\2', p_proc)
+                # 4. Trata espaços entre número e potência (ex: (x+3) 2)
+                p_proc = re.sub(r'(\))\s+(\d+)', r'\1**\2', p_proc)
+                p_proc = re.sub(r'([xyz])\s+(\d+)', r'\1**\2', p_proc)
+                
                 proc_parts.append(p_proc)
 
             lhs = sympify(proc_parts[0], locals={"x": x_sym, "y": y_sym, "z": z_sym})
