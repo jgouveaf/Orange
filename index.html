@@ -203,19 +203,21 @@
         }
 
         async function preprocessImage(dataURL) {
-            // Binarização: converte para P&B puro de alto contraste
             const img = new Image();
             img.src = dataURL;
             await new Promise(r => img.onload = r);
 
             const canvas = document.getElementById('processed-preview');
             const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
+            
+            // Fator de Escala: Aumentar a imagem ajuda o OCR a ver detalhes pequenos (expoentes)
+            const scale = 2;
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
 
-            // Filtro agressivo para realçar traços
-            ctx.filter = 'grayscale(100%) contrast(400%) brightness(70%)';
-            ctx.drawImage(img, 0, 0);
+            // Filtro de alto impacto para texto manuscrito/digital pequeno
+            ctx.filter = 'grayscale(100%) contrast(500%) brightness(90%)';
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
             document.getElementById('processed-container').classList.remove('hidden');
             return canvas.toDataURL('image/png');
@@ -224,7 +226,6 @@
         async function runScan() {
             if (!lastImage) { alert("Selecione uma imagem primeiro!"); return; }
 
-            // UI – estado de scanning
             document.getElementById('scan-bar').style.opacity = '1';
             document.getElementById('hint-panel').classList.add('hidden');
             document.getElementById('result-box').classList.add('hidden');
@@ -234,22 +235,18 @@
             const status = document.getElementById('ocr-status');
 
             try {
-                status.textContent = "🔬 Aplicando filtro de binarização...";
+                status.textContent = "🔬 Otimizando resolução e binarizando...";
                 const processed = await preprocessImage(lastImage);
 
-                status.textContent = "👁 Tesseract lendo caracteres matemáticos...";
+                status.textContent = "👁 Analisando geometria e caracteres...";
                 
-                // Tesseract com whitelist estrita
                 const result = await Tesseract.recognize(processed, 'eng', {
                     tessedit_char_whitelist: '0123456789+-*/()=xyz^¹²³.√ '
                 });
 
-                // Análise geométrica por caractere (detecta expoentes via posição Y)
                 let mathStr = "";
                 let prevBox = null;
                 const syms = result.data.symbols || [];
-
-                status.textContent = `🧮 Analisando geometria de ${syms.length} caracteres...`;
 
                 for (const s of syms) {
                     const ch = s.text;
@@ -259,9 +256,10 @@
                     if (prevBox) {
                         const prevH = prevBox.y1 - prevBox.y0;
                         const curH  = box.y1  - box.y0;
-                        // Se o caractere atual está acima (y menor) E é menor que o anterior
-                        const isAbove   = box.y0 < prevBox.y0 - prevH * 0.25;
-                        const isSmaller = curH    < prevH    * 0.85;
+                        // Sensibilidade aumentada: detecção de expoente mais agressiva
+                        const isAbove   = box.y0 < prevBox.y0 - prevH * 0.15;
+                        const isSmaller = curH    < prevH    * 0.95;
+                        
                         if (isAbove && isSmaller) {
                             mathStr += "**";
                         }
