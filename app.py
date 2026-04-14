@@ -11,6 +11,9 @@ from pydantic import BaseModel
 import uvicorn
 import logging
 
+# Google Gemini para OCR de Matemática (opcional - configure GEMINI_API_KEY)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+
 logging.basicConfig(level=logging.INFO, format='[MATH-HUB] %(asctime)s | %(message)s')
 logger = logging.getLogger("MathHub")
 
@@ -31,6 +34,9 @@ class LearnData(BaseModel):
     image_data: str
     ia_read: str
     user_corrected: str
+
+class GeminiOCRRequest(BaseModel):
+    image_data: str  # base64 data URL
 
 def normalize(expr: str) -> str:
     """Normaliza a expressão lida pelo OCR para Python/Sympy."""
@@ -217,5 +223,60 @@ async def learn_from_user(data: LearnData):
         logger.error(f"Erro no aprendizado: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/", response_class=HTMLResponse)
+async def serve_frontend():
+    with open("index.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+@app.get("/health")
+async def health():
+    gemini_ok = bool(GEMINI_API_KEY)
+    return {"status": "online", "gemini": gemini_ok}
+
+@app.post("/gemini-ocr")
+async def gemini_ocr(req: GeminiOCRRequest):
+    """Usa Google Gemini Vision para ler expressões matemáticas com precisão."""
+    if not GEMINI_API_KEY:
+        raise HTTPException(status_code=400, detail="GEMINI_API_KEY não configurada. Use Tesseract no modo offline.")
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
+        # Decodifica a imagem base64
+        header, encoded = req.image_data.split(",", 1)
+        img_bytes = base64.b64decode(encoded)
+
+        prompt = (
+            "Você é um leitor de expressões matemáticas. "
+            "Leia a expressão matemática na imagem e retorne APENAS a expressão matemática em texto puro, "
+            "usando os seguintes padrões: "
+            "- Use ** para potência (x² = x**2) "
+            "- Use * para multiplicação (3×4 = 3*4) "
+            "- Use / para divisão "
+            "- Use sqrt() para raiz quadrada "
+            "- Mantenha parênteses como estão "
+            "- NÃO inclua explicações, apenas a expressão. Exemplo: 4x**2+6x+4=0"
+        )
+
+        import PIL.Image
+        import io
+        pil_img = PIL.Image.open(io.BytesIO(img_bytes))
+        response = model.generate_content([prompt, pil_img])
+        math_text = response.text.strip()
+        # Remove markdown se vier
+        math_text = math_text.replace("```", "").replace("`", "").strip()
+
+        logger.info(f"Gemini OCR leu: {math_text}")
+        return {"text": math_text, "source": "gemini"}
+    except Exception as e:
+        logger.error(f"Erro no Gemini OCR: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
+    logger.info("SERVIDOR ANTIGRAVITY INICIADO NA PORTA 8000")
+    if GEMINI_API_KEY:
+        logger.info("✅ Gemini Vision ATIVO - OCR de alta precisão habilitado")
+    else:
+        logger.warning("⚠️  Gemini Vision OFFLINE - Configure GEMINI_API_KEY para OCR avançado")
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -3,3 +3,6 @@ uvicorn
 pydantic
 asyncio
 jinja2
+sympy
+google-generativeai
+Pillow

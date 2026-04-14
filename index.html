@@ -285,13 +285,11 @@
         const HUB = "http://localhost:8000";
         let lastImage = null;
         let lastRawRead = "";
+        let geminiEnabled = false;
 
         function speakMath(text) {
             if (!window.speechSynthesis) return;
-
-            // Cancela falas anteriores
             window.speechSynthesis.cancel();
-
             let msg = text
                 .replace(/\*\*/g, " elevado a ")
                 .replace(/\^/g, " elevado a ")
@@ -306,11 +304,8 @@
                 .replace(/=/g, " igual a ")
                 .replace(/sqrt/g, " raiz quadrada de ")
                 .replace(/√/g, " raiz quadrada de ");
-
-            // Refinamento para ler expoentes numéricos comuns
             msg = msg.replace(/ elevado a 2(\s|$)/g, " ao quadrado$1")
                 .replace(/ elevado a 3(\s|$)/g, " ao cubo$1");
-
             const utterance = new SpeechSynthesisUtterance(msg);
             utterance.lang = 'pt-BR';
             utterance.rate = 1.1;
@@ -320,23 +315,38 @@
 
         function toggleHelp() { document.getElementById('help-modal').classList.toggle('active'); }
 
-        // Health heartbeat
+        // Health heartbeat - verifica servidor E Gemini
         setInterval(async () => {
             const dot = document.getElementById('status-dot');
             const txt = document.getElementById('status-text');
             try {
                 const r = await fetch(`${HUB}/health`, { signal: AbortSignal.timeout(2000) });
                 if (r.ok) {
-                    dot.className = "w-2 h-2 rounded-full bg-cyan-400";
-                    txt.textContent = "Hub Online";
-                    txt.className = "text-cyan-400";
+                    const data = await r.json();
+                    geminiEnabled = data.gemini === true;
+                    dot.className = "w-2 h-2 rounded-full " + (geminiEnabled ? "bg-purple-400" : "bg-cyan-400");
+                    txt.textContent = geminiEnabled ? "Hub + Gemini AI" : "Hub Online";
+                    txt.className = geminiEnabled ? "text-purple-400" : "text-cyan-400";
                     return;
                 }
             } catch { }
+            geminiEnabled = false;
             dot.className = "w-2 h-2 rounded-full bg-red-500";
             txt.textContent = "Hub Offline";
             txt.className = "text-zinc-400";
         }, 3000);
+
+        // Tenta usar Gemini OCR (IA de alta precisão para matemática)
+        async function tryGeminiOCR(imageData) {
+            const res = await fetch(`${HUB}/gemini-ocr`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image_data: imageData })
+            });
+            if (!res.ok) throw new Error('Gemini indisponível');
+            const data = await res.json();
+            return data.text;
+        }
 
         async function handleFile(input) {
             if (!input.files[0]) return;
@@ -415,10 +425,36 @@
             document.getElementById('detected-text').value = "";
             const status = document.getElementById('ocr-status');
 
+            // MODO GEMINI: IA de alta precisão (igual ao Monica AI)
+            if (geminiEnabled) {
+                try {
+                    status.textContent = "🤖 Gemini AI: Lendo expressão matemática...";
+                    document.getElementById('scan-bar').style.opacity = '1';
+
+                    let mathText = await tryGeminiOCR(lastImage);
+
+                    // Remove = no final se não tiver nada depois
+                    if (mathText.trim().endsWith("=")) {
+                        mathText = mathText.trim().slice(0, -1).trim();
+                    }
+
+                    lastRawRead = mathText;
+                    document.getElementById('detected-text').value = mathText;
+                    document.getElementById('scan-bar').style.opacity = '0';
+                    status.textContent = "✅ Gemini AI leu com precisão. Confirme se necessário.";
+                    document.getElementById('solve-btn').classList.remove('hidden');
+                    speakMath(mathText);
+                    return;
+                } catch (geminiErr) {
+                    console.warn("Gemini falhou, usando Tesseract:", geminiErr);
+                    status.textContent = "⚠ Gemini falhou, usando Tesseract...";
+                }
+            }
+
+            // MODO TESSERACT: Fallback local
             try {
                 status.textContent = "🔬 Otimizando imagem para capturar x e potências...";
                 const processed = await preprocessImage(lastImage);
-
                 status.textContent = "👁 Analisando símbolos (Modo Linha Única)...";
 
                 const result = await Tesseract.recognize(processed, 'eng', {
