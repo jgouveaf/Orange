@@ -221,7 +221,8 @@
                 .replace(/s/g, "5")  // 'S' vira '5'
                 .replace(/o/g, "0")  // 'O' vira '0'
                 .replace(/i|l/g, "1") // 'I' ou 'l' vira '1'
-                .replace(/[^0-9+\-*/().√%=sqrtxyz^¹²³]/g, "") // Limpa lixo residual (INCLUI expoentes ¹²³)
+                .replace(/([xyz\)])%/g, "$1²") // CORREÇÃO: se % segue letra ou ), vira ²
+                .replace(/[^0-9+\-*/().√%=sqrtxyz^¹²³]/g, "") // Limpa lixo residual
                 .trim();
             
             rawIALeading = cleanedText;
