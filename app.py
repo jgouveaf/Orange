@@ -46,7 +46,7 @@ def calculate_expression(expr):
     try:
         # 1. Normalização Inicial
         # Guardamos a expressão original para splitar no '=' depois
-        raw_expr = expr.replace("÷", "/").replace(",", ".").replace("^", "**").replace("²", "**2").replace("³", "**3").strip()
+        raw_expr = expr.replace("÷", "/").replace(",", ".").replace("^", "**").replace("¹", "**1").replace("²", "**2").replace("³", "**3").strip()
         
         # 2. Suporte para Raiz Quadrada
         if "√" in raw_expr or "sqrt" in raw_expr:
