@@ -129,7 +129,14 @@
 
                 <!-- O que a IA leu -->
                 <div id="analysis-box" class="space-y-2 hidden">
-                    <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">IA leu:</label>
+                    <div class="flex justify-between items-center">
+                        <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">IA leu:</label>
+                        <button onclick="speakMath(document.getElementById('detected-text').value)" class="text-cyan-500 hover:text-cyan-400 p-1 rounded-lg transition-colors" title="Ouvir expressão">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                            </svg>
+                        </button>
+                    </div>
                     <input type="text" id="detected-text" 
                            class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-500 outline-none rounded-xl px-4 py-3 text-lg math-font text-cyan-300 transition-colors"
                            placeholder="Corrija aqui se necessário...">
@@ -139,7 +146,14 @@
                 <!-- Resultado -->
                 <div id="result-box" class="hidden flex-1 flex flex-col justify-center items-center text-center gap-4">
                     <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Resultado</p>
-                    <div id="answer-val" class="text-5xl font-bold math-font text-white break-all px-4"></div>
+                    <div class="relative group">
+                        <div id="answer-val" class="text-5xl font-bold math-font text-white break-all px-4"></div>
+                        <button onclick="speakMath(document.getElementById('answer-val').textContent)" class="absolute -right-8 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-all">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                            </svg>
+                        </button>
+                    </div>
                     <div id="explanation-val" class="hidden w-full text-left bg-black/40 border border-zinc-800 rounded-xl p-4 text-[11px] font-mono text-zinc-500 whitespace-pre-wrap leading-5"></div>
                 </div>
 
@@ -163,6 +177,38 @@
         const HUB = "http://localhost:8000";
         let lastImage = null;
         let lastRawRead = "";
+
+        function speakMath(text) {
+            if (!window.speechSynthesis) return;
+            
+            // Cancela falas anteriores
+            window.speechSynthesis.cancel();
+
+            let msg = text
+                .replace(/\*\*/g, " elevado a ")
+                .replace(/\^/g, " elevado a ")
+                .replace(/²/g, " ao quadrado")
+                .replace(/³/g, " ao cubo")
+                .replace(/\*/g, " vezes ")
+                .replace(/×/g, " vezes ")
+                .replace(/\//g, " dividido por ")
+                .replace(/÷/g, " dividido por ")
+                .replace(/\+/g, " mais ")
+                .replace(/-/g, " menos ")
+                .replace(/=/g, " igual a ")
+                .replace(/sqrt/g, " raiz quadrada de ")
+                .replace(/√/g, " raiz quadrada de ");
+
+            // Refinamento para ler expoentes numéricos comuns
+            msg = msg.replace(/ elevado a 2(\s|$)/g, " ao quadrado$1")
+                     .replace(/ elevado a 3(\s|$)/g, " ao cubo$1");
+
+            const utterance = new SpeechSynthesisUtterance(msg);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 1.1;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
 
         function toggleHelp() { document.getElementById('help-modal').classList.toggle('active'); }
 
@@ -289,6 +335,9 @@
                 document.getElementById('scan-bar').style.opacity = '0';
                 status.textContent = "✅ Leitura concluída. Corrija se necessário e clique em confirmar.";
                 document.getElementById('solve-btn').classList.remove('hidden');
+
+                // Autoplay opcional da leitura
+                speakMath(cleaned);
 
             } catch (err) {
                 console.error(err);
