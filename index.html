@@ -3,88 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Antigravity | Math Scanner AI</title>
+    <title>Antigravity | Math Learning AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #050507; }
         .math-font { font-family: 'Fira Code', monospace; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-        .glow-cyan { box-shadow: 0 0 30px rgba(6, 182, 212, 0.15); }
         .scan-line { position: absolute; width: 100%; height: 2px; background: #06b6d4; top: 0; animation: scan 3s ease-in-out infinite; z-index: 20; opacity: 0; }
         @keyframes scan { 0% { top: 0; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-        .loading-ring { border: 3px solid rgba(6, 182, 212, 0.1); border-top: 3px solid #06b6d4; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .modal { display: none; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
+        .modal.active { display: flex; }
     </style>
 </head>
 <body class="text-zinc-100 min-h-screen flex flex-col p-4 md:p-10">
 
+    <!-- Modal de Ajuda / Configuração -->
+    <div id="help-modal" class="modal fixed inset-0 z-[100] items-center justify-center p-6">
+        <div class="glass max-w-lg w-full rounded-3xl p-8 border-cyan-500/30 shadow-2xl">
+            <h2 class="text-2xl font-bold text-cyan-500 mb-6">Como Ativar o Hub Online</h2>
+            <div class="space-y-4 text-sm text-zinc-400">
+                <p>Para o site funcionar, você precisa rodar o servidor Antigravity no seu computador:</p>
+                <div class="bg-black/50 p-4 rounded-xl font-mono text-cyan-400 border border-white/5">
+                    1. cd "Documents/GitHub/João Gouvêa/PO2"<br>
+                    2. python app.py
+                </div>
+                <p class="text-[10px] uppercase font-bold text-zinc-600">Dica: Se estiver no GitHub, permita "Conteúdo Inseguro" nas configurações do site.</p>
+            </div>
+            <button onclick="toggleHelp()" class="mt-8 w-full bg-cyan-600 py-3 rounded-xl font-bold">ENTENDI</button>
+        </div>
+    </div>
+
     <header class="max-w-6xl w-full mx-auto flex justify-between items-center mb-10">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center font-bold text-white text-xl">√</div>
-            <h1 class="text-xl font-bold tracking-tighter">ANTIGRAVITY <span class="text-cyan-500">MATH_VISION</span></h1>
+            <h1 class="text-xl font-bold tracking-tighter uppercase">Antigravity Hub</h1>
         </div>
-        <div id="status" class="text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-zinc-800 bg-zinc-900 flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-red-500"></div> Hub Offline
+        <div class="flex gap-4">
+            <button onclick="toggleHelp()" class="bg-zinc-900 border border-white/5 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-800 transition-all">?</button>
+            <div id="status" class="text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-zinc-800 bg-zinc-900 flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-red-500"></div> Hub Offline
+            </div>
         </div>
     </header>
 
     <main class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         <!-- Scanner Area -->
-        <div class="lg:col-span-7 space-y-6">
-            <div class="glass rounded-[2rem] p-4 relative overflow-hidden glow-cyan group">
+        <div class="lg:col-span-12 xl:col-span-7 space-y-6">
+            <div class="glass rounded-[2rem] p-4 relative overflow-hidden group shadow-2xl">
                 <div id="webcam-container" class="rounded-2xl overflow-hidden bg-zinc-900 aspect-video flex flex-col items-center justify-center relative border border-white/5">
-                    <div class="text-center space-y-4 px-8">
+                    <div class="text-center space-y-4 px-8" id="placeholder">
                         <div class="text-zinc-700 text-6xl">📷</div>
-                        <p class="text-zinc-500 text-sm">Use a câmera ou envie um arquivo para análise.</p>
-                        <button onclick="document.getElementById('file-input').click()" class="bg-zinc-800 text-zinc-100 px-6 py-2 rounded-lg text-xs font-bold hover:bg-zinc-700 transition-colors">
-                            ESCOLHER ARQUIVO DO COMPUTADOR
-                        </button>
+                        <p class="text-zinc-500 text-sm">Pronto para a captura matemática.</p>
+                        <button onclick="initWebcam()" class="bg-cyan-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-cyan-600/20">ATIVAR CÂMERA</button>
                     </div>
                     <div id="scan-bar" class="scan-line"></div>
                 </div>
                 
-                <!-- Controls Over View -->
-                <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 z-30">
-                    <button onclick="init()" class="bg-zinc-100 text-black px-6 py-3 rounded-xl font-bold text-sm hover:scale-105 transition-transform active:scale-95 shadow-xl">
-                        ATIVAR SENSOR
-                    </button>
-                    <button onclick="solve()" id="solve-btn" class="bg-cyan-600 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-600/20 disabled:opacity-50">
-                        ESCANEAR CONTA
+                <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-4 z-30">
+                    <button onclick="solve()" id="solve-btn" class="bg-zinc-100 text-black px-10 py-4 rounded-2xl font-bold text-sm hover:scale-105 transition-transform active:scale-95 shadow-2xl">
+                        ESCANEAR AGORA
                     </button>
                 </div>
             </div>
-
-            <div class="flex items-center justify-between px-4">
-                <p class="text-xs text-zinc-500 uppercase tracking-widest">Suporte: Aritmética, Álgebra e Cálculo</p>
-                <div class="relative">
-                    <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(this)">
-                    <button onclick="document.getElementById('file-input').click()" class="text-xs text-cyan-500 hover:underline">OU ENVIAR IMAGEM</button>
-                </div>
-            </div>
+            <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(this)">
+            <button onclick="document.getElementById('file-input').click()" class="text-xs text-zinc-500 hover:text-cyan-500 font-bold tracking-widest uppercase ml-4 mt-2 transition-colors">Ou carregar arquivo</button>
         </div>
 
-        <!-- Resolution Area -->
-        <div class="lg:col-span-5 h-full">
-            <div class="glass rounded-[2rem] p-8 h-full min-h-[500px] flex flex-col">
-                <div class="flex justify-between items-center mb-8">
-                    <h3 class="text-xs font-bold text-cyan-500 uppercase tracking-widest">Resolução I.A.</h3>
-                    <div id="loading" class="hidden"><div class="loading-ring scale-50"></div></div>
-                </div>
+        <!-- Resolution & Learning Area -->
+        <div class="lg:col-span-12 xl:col-span-5 h-full">
+            <div class="glass rounded-[2rem] p-8 h-full min-h-[550px] flex flex-col space-y-8">
+                
+                <h3 class="text-xs font-bold text-cyan-500 uppercase tracking-widest">Análise de IA & Aprendizado</h3>
 
-                <div id="res-content" class="flex-1 space-y-8">
-                    <!-- Placeholder Info -->
-                    <div class="space-y-4 py-20 text-center opacity-30">
-                        <div class="text-4xl">∫</div>
-                        <p class="text-sm">Posicione a conta matemátia em frente à câmera e clique em escanear.</p>
+                <!-- Texto Lido (Editável para Correção) -->
+                <div id="analysis-box" class="space-y-4 hidden animate-pulse">
+                    <div class="space-y-1">
+                        <label class="text-[10px] uppercase text-zinc-500 font-bold tracking-widest">IA LEU (Valide abaixo):</label>
+                        <input type="text" id="detected-text" class="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-4 text-xl font-bold math-font text-cyan-400 focus:border-cyan-500 outline-none">
+                    </div>
+                    <div class="flex gap-2">
+                        <div id="ocr-loading" class="text-[10px] text-zinc-500 italic">Processando OCR Tesseract...</div>
                     </div>
                 </div>
 
-                <div id="final-answer" class="mt-8 pt-8 border-t border-white/5 hidden">
-                    <label class="text-[10px] uppercase text-zinc-500 font-bold tracking-widest">Resultado Final</label>
-                    <div id="answer-val" class="text-4xl font-bold text-white math-font mt-2"></div>
+                <!-- Resultado Final -->
+                <div id="final-res" class="flex-1 flex flex-col justify-center items-center text-center space-y-4 hidden">
+                    <div class="text-[10px] uppercase text-zinc-500 font-bold tracking-widest">Resultado do Cálculo</div>
+                    <div id="answer-val" class="text-6xl font-bold text-white math-font tracking-tighter"></div>
+                    <button onclick="saveAndSolve()" class="mt-8 bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 px-6 py-2 rounded-lg text-xs font-bold hover:bg-cyan-600 hover:text-white transition-all">SALVAR APRENDIZADO & RESOLVER</button>
                 </div>
+
+                <!-- Dica Inicial -->
+                <div id="hint" class="flex-1 flex flex-col justify-center items-center text-center opacity-20 py-20">
+                    <div class="text-5xl mb-4">∑</div>
+                    <p class="text-sm">Capture uma conta para começar a interpretação.</p>
+                </div>
+
             </div>
         </div>
 
@@ -92,120 +109,104 @@
 
     <script>
         let webcam;
-        const API_URL = "http://localhost:8000/solve";
+        let lastCapturedImage = null;
+        let rawIALeading = "";
 
-        async function init() {
+        function toggleHelp() { document.getElementById('help-modal').classList.toggle('active'); }
+
+        async function initWebcam() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
                 const video = document.createElement('video');
                 video.srcObject = stream;
                 video.autoplay = true;
                 video.onloadedmetadata = () => {
                    const canvas = document.createElement('canvas');
-                   canvas.width = 640;
-                   canvas.height = 480;
+                   canvas.width = 1280; canvas.height = 720;
                    webcam = { video, canvas, ctx: canvas.getContext('2d') };
-                   document.getElementById('webcam-container').innerHTML = '';
-                   document.getElementById('webcam-container').appendChild(video);
-                   video.style.width = '100%';
-                   video.style.height = '100%';
-                   video.style.objectFit = 'cover';
+                   const container = document.getElementById('webcam-container');
+                   container.innerHTML = ''; container.appendChild(video);
+                   video.className = "w-full h-full object-cover rounded-2xl";
                 };
-            } catch (err) {
-                alert("Erro ao iniciar câmera.");
-            }
+            } catch (err) { alert("Câmera não autorizada."); }
         }
 
         async function handleFile(input) {
             if (input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = (e) => processSolve(e.target.result);
+                reader.onload = (e) => startOCR(e.target.result);
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        async function solve() {
-            if (!webcam) return alert("Ative o sensor primeiro!");
-            webcam.ctx.drawImage(webcam.video, 0, 0, 640, 480);
+        function solve() {
+            if (!webcam) return alert("Ative a câmera primeiro!");
+            webcam.ctx.drawImage(webcam.video, 0, 0, 1280, 720);
             const dataURL = webcam.canvas.toDataURL('image/png');
-            processSolve(dataURL);
+            startOCR(dataURL);
         }
 
-        async function processSolve(dataURL) {
-            const btn = document.getElementById('solve-btn');
-            const loader = document.getElementById('loading');
-            const scanLine = document.getElementById('scan-bar');
-            const content = document.getElementById('res-content');
-            const foot = document.getElementById('final-answer');
+        async function startOCR(dataURL) {
+            lastCapturedImage = dataURL;
+            document.getElementById('hint').classList.add('hidden');
+            document.getElementById('analysis-box').classList.remove('hidden');
+            document.getElementById('analysis-box').classList.add('animate-pulse');
+            document.getElementById('scan-bar').style.opacity = '1';
+            document.getElementById('ocr-loading').innerText = "O Tesseract está lendo os números...";
 
-            btn.disabled = true;
-            loader.classList.remove('hidden');
-            scanLine.style.opacity = '1';
-            content.innerHTML = '<p class="text-cyan-500 animate-pulse text-sm mt-10 text-center">Analizando padrões matemáticos...</p>';
-            foot.classList.add('hidden');
+            // OCR Real via Tesseract.js
+            const { data: { text } } = await Tesseract.recognize(dataURL, 'eng');
+            
+            // Sanitiza o texto lido (remove quebras de linha e lixo)
+            const cleanedText = text.replace(/[^0-9+\-*/(). ]/g, "").trim();
+            rawIALeading = cleanedText;
+
+            document.getElementById('detected-text').value = cleanedText;
+            document.getElementById('analysis-box').classList.remove('animate-pulse');
+            document.getElementById('ocr-loading').innerText = "IA concluiu a leitura. Se estiver errado, corrija acima.";
+            document.getElementById('scan-bar').style.opacity = '0';
+            document.getElementById('final-res').classList.remove('hidden');
+        }
+
+        async function saveAndSolve() {
+            const correctedText = document.getElementById('detected-text').value;
+            const resVal = document.getElementById('answer-val');
 
             try {
-                const res = await fetch(API_URL, {
+                const res = await fetch("http://localhost:8000/aprender", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image_data: dataURL })
+                    body: JSON.stringify({
+                        image_data: lastCapturedImage,
+                        ia_read: rawIALeading,
+                        user_corrected: correctedText
+                    })
                 });
-                const result = await res.json();
-
-                if (result.status === 'success') {
-                    renderResolution(result.data);
-                } else {
-                    content.innerHTML = `<p class="text-red-500 text-sm mt-10 text-center">${result.message}</p>`;
-                }
+                const data = await res.json();
+                
+                resVal.innerText = data.result;
+                resVal.classList.add('text-cyan-400');
             } catch (e) {
-                content.innerHTML = '<p class="text-red-400 text-sm mt-10 text-center">Hub Offline. Inicie o app.py localmente.</p>';
-            } finally {
-                btn.disabled = false;
-                loader.classList.add('hidden');
-                scanLine.style.opacity = '0';
+                alert("Hub Offline. Por favor, reinicie o app.py.");
             }
         }
 
-        function renderResolution(data) {
-            const content = document.getElementById('res-content');
-            const foot = document.getElementById('final-answer');
-            const ans = document.getElementById('answer-val');
-
-            content.innerHTML = `
-                <div class="space-y-1">
-                    <label class="text-[10px] uppercase text-zinc-500 font-bold tracking-widest">Problema Identificado</label>
-                    <div class="text-2xl font-bold math-font text-cyan-400 tracking-tighter">${data.problem}</div>
-                </div>
-                <div class="space-y-4">
-                    <label class="text-[10px] uppercase text-zinc-500 font-bold tracking-widest">Passo a Passo</label>
-                    <div class="space-y-4">
-                        ${data.steps.map((step, i) => `
-                            <div class="flex gap-4">
-                                <div class="w-6 h-6 rounded-full bg-zinc-800 text-[10px] font-bold flex items-center justify-center text-zinc-500 border border-white/5">${i+1}</div>
-                                <div class="text-sm text-zinc-300 pt-1">${step}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-
-            foot.classList.remove('hidden');
-            ans.innerText = data.answer;
-        }
-
-        // Monitoring Connection
+        // Monitoring Connection (Heartbeat)
         setInterval(async () => {
             const badge = document.getElementById("status");
             try {
                 const res = await fetch("http://localhost:8000/health");
                 if (res.ok) {
-                    badge.innerHTML = '<div class="w-2 h-2 rounded-full bg-cyan-500"></div> HUB ONLINE';
-                    badge.classList.replace('text-zinc-500', 'text-cyan-500');
+                    badge.innerHTML = '<div class="w-2 h-2 rounded-full bg-cyan-500"></div> Hub Online';
+                    badge.classList.remove('text-red-500');
+                    badge.classList.add('text-cyan-500');
                 }
             } catch {
-                badge.innerHTML = '<div class="w-2 h-2 rounded-full bg-red-500"></div> HUB OFFLINE';
+                badge.innerHTML = '<div class="w-2 h-2 rounded-full bg-red-500"></div> Hub Offline';
+                badge.classList.add('text-red-500');
+                badge.classList.remove('text-cyan-500');
             }
-        }, 3000);
+        }, 4000);
     </script>
 </body>
 </html>

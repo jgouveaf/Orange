@@ -1,7 +1,8 @@
 import asyncio
 import os
 import base64
-import random
+import json
+from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,11 +10,11 @@ from pydantic import BaseModel
 import uvicorn
 import logging
 
-# Antigravity Math Vision Core
-logging.basicConfig(level=logging.INFO, format='[MATH-AI] %(asctime)s | %(message)s')
-logger = logging.getLogger("MathAI")
+# Antigravity Math & Learning Hub
+logging.basicConfig(level=logging.INFO, format='[MATH-HUB] %(asctime)s | %(message)s')
+logger = logging.getLogger("MathHub")
 
-app = FastAPI(title="Antigravity Math Solver")
+app = FastAPI(title="Antigravity Math Learning Core")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,76 +23,85 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class MathProblem(BaseModel):
-    image_data: str # Base64
+# Pastas de Aprendizado
+TRAINING_DIR = "dataset_treinamento"
+LOG_FILE = "aprendizado_ia.json"
 
-# --- Lógica de Resolução Simulada (Substituível por OCR Real) ---
-def simulate_math_resolution(image_b64):
-    """
-    Aqui, em um sistema real, usaríamos bibliotecas como Pytesseract ou APIs de Vision.
-    Para o teste, simulamos uma inteligência que detecta padrões matemáticos comuns.
-    """
-    # Lista de problemas exemplo para demonstrar a interface
-    exemplos = [
-        {
-            "problem": "2x + 5 = 15",
-            "steps": [
-                "Subtraia 5 de ambos os lados: 2x = 10",
-                "Divida ambos os lados por 2: x = 5"
-            ],
-            "answer": "x = 5"
-        },
-        {
-            "problem": "∫ x² dx",
-            "steps": [
-                "Aplique a regra da potência: (x^(n+1))/(n+1)",
-                "Adicione a constante de integração C"
-            ],
-            "answer": "(x³ / 3) + C"
-        },
-        {
-            "problem": "√144 + 5²",
-            "steps": [
-                "Calcule a raiz quadrada de 144: 12",
-                "Calcule o quadrado de 5: 25",
-                "Some os resultados: 12 + 25 = 37"
-            ],
-            "answer": "37"
-        }
-    ]
-    return random.choice(exemplos)
+for d in [TRAINING_DIR]:
+    if not os.path.exists(d):
+        os.makedirs(d)
+
+class LearnData(BaseModel):
+    image_data: str
+    ia_read: str
+    user_corrected: str
+
+class SimpleSolve(BaseModel):
+    expression: str
+
+# --- Motor de Cálculo Real ---
+def calculate_expression(expr):
+    """Resolve a conta matemática de forma segura"""
+    try:
+        # Sanitização básica para impedir código malicioso
+        allowed_chars = "0123456789+-*/(). "
+        clean_expr = "".join([c for c in expr if c in allowed_chars])
+        
+        # Resolve a expressão
+        result = eval(clean_expr)
+        return str(result)
+    except Exception as e:
+        return "Erro de Cálculo"
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_frontend():
     with open("index.html", "r", encoding="utf-8") as f:
         return f.read()
 
-@app.post("/solve")
-async def solve_math(problem: MathProblem):
-    """
-    Endpoint de Inteligência Matemática.
-    Recebe a imagem, 'lê' a conta e retorna a resolução passo a passo.
-    """
-    logger.info("Analisando imagem recebida...")
+@app.get("/health")
+async def health():
+    return {"status": "online"}
+
+@app.post("/aprender")
+async def learn_from_user(data: LearnData):
+    """Salva a correção do usuário para treinar a IA futuramente"""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     try:
-        # Simulando tempo de processamento da IA
-        await asyncio.sleep(2) 
+        # Salva a imagem para o dataset
+        header, encoded = data.image_data.split(",", 1)
+        img_bytes = base64.b64decode(encoded)
+        img_filename = f"revisar_{timestamp}.png"
+        img_path = os.path.join(TRAINING_DIR, img_filename)
         
-        resolution = simulate_math_resolution(problem.image_data)
+        with open(img_path, "wb") as f:
+            f.write(img_bytes)
+
+        # Registra a correção no log
+        log_entry = {
+            "timestamp": timestamp,
+            "imagem": img_filename,
+            "ia_leu": data.ia_read,
+            "usuario_corrigiu": data.user_corrected,
+            "precisava_corrigir": data.ia_read != data.user_corrected
+        }
         
-        logger.info(f"Problema Resolvido: {resolution['answer']}")
+        with open(LOG_FILE, "a") as f:
+            f.write(json.dumps(log_entry) + "\n")
+
+        # Resolve a conta corrigida
+        resultado = calculate_expression(data.user_corrected)
+        
+        logger.info(f"APRENDIZADO: Usuário corrigiu '{data.ia_read}' para '{data.user_corrected}'. Resultado: {resultado}")
+        
         return {
-            "status": "success",
-            "data": resolution
+            "status": "learned",
+            "result": resultado,
+            "message": "Dados salvos para treinamento!"
         }
     except Exception as e:
-        logger.error(f"Erro na análise: {e}")
-        return {"status": "error", "message": "Não foi possível ler a conta. Tente uma imagem mais nítida."}
-
-@app.get("/health")
-async def health_check():
-    return {"status": "online"}
+        logger.error(f"Erro no aprendizado: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao salvar dados de aprendizado")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
