@@ -72,12 +72,24 @@ def calculate_expression(expr: str) -> dict:
             x, y, z = symbols('x y z')
             sym_locals = {"x": x, "y": y, "z": z, "sqrt": __import__("sympy").sqrt}
 
-            current_step = "Divisão lateral da equação"
-            sides = raw.split("=", 1) if has_eq else [raw, "0"]
+            current_step = "Análise de estrutura da equação"
+            if has_eq:
+                sides = raw.split("=", 1)
+                lhs_raw = sides[0].strip()
+                rhs_raw = sides[1].strip() if len(sides) > 1 else ""
+                
+                # Regra: Se não houver nada depois do '=', ignora o '='
+                if not rhs_raw:
+                    has_eq = False
+                    raw = lhs_raw
+                else:
+                    current_step = "Preparação algébrica (Sympy)"
+                    lhs_str = prepare_for_sympy(lhs_raw)
+                    rhs_str = prepare_for_sympy(rhs_raw)
             
-            current_step = "Preparação algébrica (Sympy)"
-            lhs_str = prepare_for_sympy(sides[0].strip())
-            rhs_str = prepare_for_sympy(sides[1].strip()) if len(sides) > 1 else "0"
+            if not has_eq:
+                lhs_str = prepare_for_sympy(raw)
+                rhs_str = "0"
 
             logger.info(f"Sympy LHS: {lhs_str} | RHS: {rhs_str}")
 
