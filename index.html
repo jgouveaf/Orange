@@ -1,23 +1,79 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Antigravity | Math AI Scanner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;700&display=swap"
+        rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #05050a; }
-        .math-font { font-family: 'Fira Code', monospace; }
-        .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-        .scan-line { position: absolute; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #06b6d4, transparent); top: 0; animation: scan 2.5s ease-in-out infinite; z-index: 20; opacity: 0; }
-        @keyframes scan { 0%{top:0;opacity:0} 20%{opacity:1} 80%{opacity:1} 100%{top:100%;opacity:0} }
-        .modal { display: none; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); }
-        .modal.active { display: flex; }
-        #processed-preview { max-height: 120px; object-fit: contain; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #05050a;
+        }
+
+        .math-font {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #06b6d4, transparent);
+            top: 0;
+            animation: scan 2.5s ease-in-out infinite;
+            z-index: 20;
+            opacity: 0;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+                opacity: 0
+            }
+
+            20% {
+                opacity: 1
+            }
+
+            80% {
+                opacity: 1
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0
+            }
+        }
+
+        .modal {
+            display: none;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        #processed-preview {
+            max-height: 120px;
+            object-fit: contain;
+        }
     </style>
 </head>
+
 <body class="text-zinc-100 min-h-screen flex flex-col p-4 md:p-8">
 
     <!-- Modal de Ajuda -->
@@ -28,39 +84,52 @@
                 <p>Para o site funcionar, rode o servidor no seu computador:</p>
                 <div class="space-y-3">
                     <div class="flex gap-3 items-start">
-                        <div class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">1</div>
+                        <div
+                            class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">
+                            1</div>
                         <p>Abra a pasta onde você salvou este projeto.</p>
                     </div>
                     <div class="flex gap-3 items-start">
-                        <div class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">2</div>
-                        <p>Clique na barra de endereços da pasta, digite <b class="text-white">cmd</b> e pressione Enter.</p>
+                        <div
+                            class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">
+                            2</div>
+                        <p>Clique na barra de endereços da pasta, digite <b class="text-white">cmd</b> e pressione
+                            Enter.</p>
                     </div>
                     <div class="flex gap-3 items-start">
-                        <div class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">3</div>
+                        <div
+                            class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">
+                            3</div>
                         <p>No terminal, digite e pressione Enter:</p>
                     </div>
                 </div>
                 <div class="bg-black/60 p-4 rounded-xl font-mono text-cyan-400 border border-cyan-500/20 text-sm">
                     python app.py
                 </div>
-                <p class="text-[10px] uppercase font-bold text-zinc-600 pt-2">⚠️ Mantenha a janela do terminal aberta enquanto usa o site.</p>
+                <p class="text-[10px] uppercase font-bold text-zinc-600 pt-2">⚠️ Mantenha a janela do terminal aberta
+                    enquanto usa o site.</p>
             </div>
-            <button onclick="toggleHelp()" class="mt-6 w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition-colors">ENTENDI</button>
+            <button onclick="toggleHelp()"
+                class="mt-6 w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition-colors">ENTENDI</button>
         </div>
     </div>
 
     <!-- Header -->
     <header class="max-w-6xl w-full mx-auto flex justify-between items-center mb-8">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-cyan-600 rounded-xl flex items-center justify-center font-bold text-white text-xl math-font">∑</div>
+            <div
+                class="w-10 h-10 bg-cyan-600 rounded-xl flex items-center justify-center font-bold text-white text-xl math-font">
+                ∑</div>
             <div>
                 <h1 class="text-lg font-bold tracking-tight leading-none">MathAI Scanner</h1>
                 <p class="text-[10px] text-zinc-500 uppercase tracking-widest">Antigravity Hub</p>
             </div>
         </div>
         <div class="flex gap-3 items-center">
-            <button onclick="toggleHelp()" class="w-9 h-9 rounded-full glass flex items-center justify-center text-zinc-400 hover:text-cyan-400 transition-colors">?</button>
-            <div id="status-badge" class="flex items-center gap-2 px-4 py-2 rounded-full glass text-[11px] font-bold uppercase tracking-widest">
+            <button onclick="toggleHelp()"
+                class="w-9 h-9 rounded-full glass flex items-center justify-center text-zinc-400 hover:text-cyan-400 transition-colors">?</button>
+            <div id="status-badge"
+                class="flex items-center gap-2 px-4 py-2 rounded-full glass text-[11px] font-bold uppercase tracking-widest">
                 <div id="status-dot" class="w-2 h-2 rounded-full bg-red-500"></div>
                 <span id="status-text">Hub Offline</span>
             </div>
@@ -71,37 +140,40 @@
 
         <!-- SCANNER -->
         <div class="lg:col-span-7 space-y-4">
-            
+
             <!-- Área de Input -->
             <div class="glass rounded-2xl p-4 space-y-3">
                 <div class="flex items-center justify-between mb-1">
                     <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Entrada de Imagem</p>
                     <p class="text-[10px] text-amber-500 font-semibold">⚠ Imagem simples com a conta apenas</p>
                 </div>
-                
+
                 <!-- Drop Zone / Preview -->
-                <div id="drop-zone" onclick="document.getElementById('file-input').click()" 
-                     class="relative rounded-xl bg-zinc-900/80 border-2 border-dashed border-zinc-700 hover:border-cyan-500 transition-colors cursor-pointer overflow-hidden aspect-video flex flex-col items-center justify-center">
+                <div id="drop-zone" onclick="document.getElementById('file-input').click()"
+                    class="relative rounded-xl bg-zinc-900/80 border-2 border-dashed border-zinc-700 hover:border-cyan-500 transition-colors cursor-pointer overflow-hidden aspect-video flex flex-col items-center justify-center">
                     <div id="drop-placeholder" class="text-center space-y-3 px-8">
                         <div class="text-5xl text-zinc-700">📄</div>
                         <p class="text-zinc-500 text-sm">Clique para enviar uma imagem</p>
                         <p class="text-zinc-600 text-xs">JPG, PNG, WebP</p>
                     </div>
-                    <img id="img-preview" class="hidden absolute inset-0 w-full h-full object-contain bg-zinc-900" src="" alt="Preview">
+                    <img id="img-preview" class="hidden absolute inset-0 w-full h-full object-contain bg-zinc-900"
+                        src="" alt="Preview">
                     <div id="scan-bar" class="scan-line"></div>
                 </div>
                 <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(this)">
 
                 <!-- Processed Preview -->
                 <div id="processed-container" class="hidden space-y-1">
-                    <p class="text-[10px] text-zinc-600 uppercase font-bold tracking-widest">O que a IA vê (após filtro):</p>
-                    <canvas id="processed-preview" class="w-full rounded-lg border border-zinc-800 bg-zinc-900"></canvas>
+                    <p class="text-[10px] text-zinc-600 uppercase font-bold tracking-widest">O que a IA vê (após
+                        filtro):</p>
+                    <canvas id="processed-preview"
+                        class="w-full rounded-lg border border-zinc-800 bg-zinc-900"></canvas>
                 </div>
             </div>
 
             <!-- Botão de Scan -->
-            <button onclick="runScan()" id="scan-btn" 
-                    class="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white py-4 rounded-2xl font-bold text-sm transition-all shadow-lg shadow-cyan-600/20">
+            <button onclick="runScan()" id="scan-btn"
+                class="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white py-4 rounded-2xl font-bold text-sm transition-all shadow-lg shadow-cyan-600/20">
                 🔍 ESCANEAR E RESOLVER
             </button>
 
@@ -109,14 +181,30 @@
             <div class="glass rounded-2xl p-4">
                 <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-3">Símbolos suportados</p>
                 <div class="grid grid-cols-4 gap-2 text-center text-sm">
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">+  −</span><p class="text-[9px] text-zinc-600 mt-1">SOMA / SUB</p></div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">×  ÷</span><p class="text-[9px] text-zinc-600 mt-1">MULT / DIV</p></div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">x²  ^</span><p class="text-[9px] text-zinc-600 mt-1">POTÊNCIA</p></div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">√</span><p class="text-[9px] text-zinc-600 mt-1">RAIZ</p></div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">x  y</span><p class="text-[9px] text-zinc-600 mt-1">INCÓGNITA</p></div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">( )</span><p class="text-[9px] text-zinc-600 mt-1">PARÊNTESES</p></div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">=</span><p class="text-[9px] text-zinc-600 mt-1">EQUAÇÃO</p></div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">a/b</span><p class="text-[9px] text-zinc-600 mt-1">FRAÇÃO</p></div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">+ −</span>
+                        <p class="text-[9px] text-zinc-600 mt-1">SOMA / SUB</p>
+                    </div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">× ÷</span>
+                        <p class="text-[9px] text-zinc-600 mt-1">MULT / DIV</p>
+                    </div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">x² ^</span>
+                        <p class="text-[9px] text-zinc-600 mt-1">POTÊNCIA</p>
+                    </div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">√</span>
+                        <p class="text-[9px] text-zinc-600 mt-1">RAIZ</p>
+                    </div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">x y</span>
+                        <p class="text-[9px] text-zinc-600 mt-1">INCÓGNITA</p>
+                    </div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">( )</span>
+                        <p class="text-[9px] text-zinc-600 mt-1">PARÊNTESES</p>
+                    </div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">=</span>
+                        <p class="text-[9px] text-zinc-600 mt-1">EQUAÇÃO</p>
+                    </div>
+                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">a/b</span>
+                        <p class="text-[9px] text-zinc-600 mt-1">FRAÇÃO</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -124,22 +212,26 @@
         <!-- PAINEL DE RESULTADO -->
         <div class="lg:col-span-5">
             <div class="glass rounded-2xl p-6 h-full flex flex-col gap-6 min-h-[500px]">
-                
+
                 <p class="text-[10px] text-cyan-500 uppercase font-bold tracking-widest">Análise & Resolução</p>
 
                 <!-- O que a IA leu -->
                 <div id="analysis-box" class="space-y-2 hidden">
                     <div class="flex justify-between items-center">
                         <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">IA leu:</label>
-                        <button onclick="speakMath(document.getElementById('detected-text').value)" class="text-cyan-500 hover:text-cyan-400 p-1 rounded-lg transition-colors" title="Ouvir expressão">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        <button onclick="speakMath(document.getElementById('detected-text').value)"
+                            class="text-cyan-500 hover:text-cyan-400 p-1 rounded-lg transition-colors"
+                            title="Ouvir expressão">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                             </svg>
                         </button>
                     </div>
-                    <input type="text" id="detected-text" 
-                           class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-500 outline-none rounded-xl px-4 py-3 text-lg math-font text-cyan-300 transition-colors"
-                           placeholder="Corrija aqui se necessário...">
+                    <input type="text" id="detected-text"
+                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-500 outline-none rounded-xl px-4 py-3 text-lg math-font text-cyan-300 transition-colors"
+                        placeholder="Corrija aqui se necessário...">
                     <p id="ocr-status" class="text-[10px] text-zinc-500 italic"></p>
                 </div>
 
@@ -148,24 +240,30 @@
                     <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Resultado</p>
                     <div class="relative group">
                         <div id="answer-val" class="text-5xl font-bold math-font text-white break-all px-4"></div>
-                        <button onclick="speakMath(document.getElementById('answer-val').textContent)" class="absolute -right-8 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-all">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        <button onclick="speakMath(document.getElementById('answer-val').textContent)"
+                            class="absolute -right-8 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                             </svg>
                         </button>
                     </div>
-                    <div id="explanation-val" class="hidden w-full text-left bg-black/40 border border-zinc-800 rounded-xl p-4 text-[11px] font-mono text-zinc-500 whitespace-pre-wrap leading-5"></div>
+                    <div id="explanation-val"
+                        class="hidden w-full text-left bg-black/40 border border-zinc-800 rounded-xl p-4 text-[11px] font-mono text-zinc-500 whitespace-pre-wrap leading-5">
+                    </div>
                 </div>
 
                 <!-- Hint inicial -->
-                <div id="hint-panel" class="flex-1 flex flex-col items-center justify-center text-center opacity-20 py-10 gap-3">
+                <div id="hint-panel"
+                    class="flex-1 flex flex-col items-center justify-center text-center opacity-20 py-10 gap-3">
                     <div class="text-5xl">∫</div>
                     <p class="text-sm">Envie uma imagem com a conta para começar.</p>
                 </div>
 
                 <!-- Botão de aprendizado -->
                 <button onclick="saveAndSolve()" id="solve-btn"
-                        class="w-full hidden bg-cyan-900/30 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-600 hover:text-white py-3 rounded-xl text-xs font-bold transition-all">
+                    class="w-full hidden bg-cyan-900/30 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-600 hover:text-white py-3 rounded-xl text-xs font-bold transition-all">
                     💾 CONFIRMAR TEXTO E RESOLVER
                 </button>
             </div>
@@ -180,7 +278,7 @@
 
         function speakMath(text) {
             if (!window.speechSynthesis) return;
-            
+
             // Cancela falas anteriores
             window.speechSynthesis.cancel();
 
@@ -201,7 +299,7 @@
 
             // Refinamento para ler expoentes numéricos comuns
             msg = msg.replace(/ elevado a 2(\s|$)/g, " ao quadrado$1")
-                     .replace(/ elevado a 3(\s|$)/g, " ao cubo$1");
+                .replace(/ elevado a 3(\s|$)/g, " ao cubo$1");
 
             const utterance = new SpeechSynthesisUtterance(msg);
             utterance.lang = 'pt-BR';
@@ -224,7 +322,7 @@
                     txt.className = "text-cyan-400";
                     return;
                 }
-            } catch {}
+            } catch { }
             dot.className = "w-2 h-2 rounded-full bg-red-500";
             txt.textContent = "Hub Offline";
             txt.className = "text-zinc-400";
@@ -255,8 +353,8 @@
 
             const canvas = document.getElementById('processed-preview');
             const ctx = canvas.getContext('2d');
-            
-            const scale = 2.5; 
+
+            const scale = 2.5;
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -266,7 +364,7 @@
             const grays = new Uint8Array(data.length / 4);
 
             for (let i = 0; i < data.length; i += 4) {
-                grays[i/4] = (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
+                grays[i / 4] = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
             }
 
             // ALGORITMO DE OTSU: Binarização adaptativa para fundos coloridos
@@ -286,8 +384,8 @@
 
             // Aplica binarização (com margem de segurança)
             for (let i = 0; i < data.length; i += 4) {
-                const val = (grays[i/4] < threshold - 10) ? 0 : 255;
-                data[i] = data[i+1] = data[i+2] = val;
+                const val = (grays[i / 4] < threshold - 10) ? 0 : 255;
+                data[i] = data[i + 1] = data[i + 2] = val;
             }
 
             // Dilatação 2x2: Engrossa sem distorcer
@@ -298,17 +396,17 @@
                     let minVal = 255;
                     for (let dy = 0; dy <= 1; dy++) {
                         for (let dx = 0; dx <= 1; dx++) {
-                            const ny = Math.min(h-1, y+dy), nx = Math.min(w-1, x+dx);
+                            const ny = Math.min(h - 1, y + dy), nx = Math.min(w - 1, x + dx);
                             const idx = (ny * w + nx) * 4;
                             if (data[idx] < minVal) minVal = data[idx];
                         }
                     }
                     const oIdx = (y * w + x) * 4;
-                    dilated[oIdx] = dilated[oIdx+1] = dilated[oIdx+2] = minVal;
-                    dilated[oIdx+3] = 255;
+                    dilated[oIdx] = dilated[oIdx + 1] = dilated[oIdx + 2] = minVal;
+                    dilated[oIdx + 3] = 255;
                 }
             }
-            
+
             ctx.putImageData(new ImageData(dilated, w, h), 0, 0);
             document.getElementById('processed-container').classList.remove('hidden');
             return canvas.toDataURL('image/png');
@@ -330,15 +428,15 @@
                 const processed = await preprocessImage(lastImage);
 
                 status.textContent = "👁 Analisando geometria e caracteres...";
-                
+
                 const result = await Tesseract.recognize(processed, 'eng', {
                     tessedit_char_whitelist: '0123456789+-*/()=xyz^¹²³.√!#%&_ ',
-                    tessedit_pageseg_mode: '6' 
+                    tessedit_pageseg_mode: '6'
                 });
 
                 let mathStr = "";
                 const syms = (result.data.symbols || []).filter(s => s.text.trim());
-                
+
                 if (syms.length > 0) {
                     // 1. Calcula a linha de base média (bottom Y) e altura média da linha
                     let avgBottom = syms.reduce((acc, s) => acc + s.bbox.y1, 0) / syms.length;
@@ -371,15 +469,21 @@
                 // Limpeza final e heurísticas de correção ultra-focadas
                 let cleaned = mathStr
                     .replace(/\n+/g, " ")
+                    // Remove caracteres de lixo, mas mantém o essencial
                     .replace(/[^0-9+\-*/()=xyz^¹²³.√!#%&_ ]/gi, "")
                     .replace(/\s+/g, " ")
+                    // REGRA DE OURO: Se o símbolo '*' aparecer colado num número/letra e estiver "alto", 
+                    // ou se Tesseract leu 'x*' para 'x²', corrigimos.
+                    .replace(/([xyz0-9])\*/g, "$1**2")
                     // Heurística de potência colada (ex: x2 -> x**2)
                     .replace(/([xyz])([234z])/g, (m, p1, p2) => {
                         let exp = ["4", "z"].includes(p2) ? "2" : p2;
                         return p1 + "**" + exp;
                     })
-                    // Corrige falta de operador entre número e letra (ex: 4x -> 4*x)
-                    .replace(/(\d)([xyz])/g, "$1$2") // O backend app.py já trata isso se necessário
+                    // Tratamento de Multiplicação: O usuário quer '*' e não 'x' para multiplicar.
+                    // Se detectarmos algo como '2 x 3', transformamos em '2 * 3'.
+                    // Mas '2x' continua '2x' (será tratado como 2*x no backend).
+                    .replace(/(\d)\s*[xX]\s*(\d)/g, "$1 * $2")
                     .trim();
 
                 // Se veio vazio (OCR falhou), usa o texto bruto do resultado
@@ -391,9 +495,10 @@
                 }
 
                 lastRawRead = cleaned;
+                // Exibe no input para o usuário confirmar
                 document.getElementById('detected-text').value = cleaned;
                 document.getElementById('scan-bar').style.opacity = '0';
-                status.textContent = "✅ Leitura concluída. Corrija se necessário e clique em confirmar.";
+                status.textContent = "✨ IA: 'Entendi que a multiplicação é * e a variável é x'. Verifique se x² está correto.";
                 document.getElementById('solve-btn').classList.remove('hidden');
 
                 // Autoplay opcional da leitura
@@ -411,12 +516,12 @@
             if (!corrected) { alert("Campo de texto vazio! Corrija o que a IA leu."); return; }
 
             const btn = document.getElementById('solve-btn');
-            btn.textContent = "⏳ Processando...";
+            btn.innerHTML = '<span class="animate-pulse">🧠 PENSANDO...</span>';
             btn.disabled = true;
 
-            const answerEl   = document.getElementById('answer-val');
-            const explanEl   = document.getElementById('explanation-val');
-            const resultBox  = document.getElementById('result-box');
+            const answerEl = document.getElementById('answer-val');
+            const explanEl = document.getElementById('explanation-val');
+            const resultBox = document.getElementById('result-box');
 
             try {
                 const res = await fetch(`${HUB}/aprender`, {
@@ -432,9 +537,13 @@
                 const data = await res.json();
                 const mathResult = data.result;
 
-                answerEl.textContent = mathResult?.answer ?? "?";
-                answerEl.className = "text-5xl font-bold math-font break-all px-4 " +
-                    (mathResult?.answer === "ERRO" ? "text-red-500" : "text-cyan-400");
+                if (mathResult?.answer === "ERRO") {
+                    answerEl.textContent = "Erro de Sintaxe";
+                    answerEl.className = "text-3xl font-bold math-font text-red-500 break-all px-4";
+                } else {
+                    answerEl.textContent = mathResult?.answer ?? "?";
+                    answerEl.className = "text-5xl font-bold math-font text-cyan-400 break-all px-4";
+                }
 
                 if (mathResult?.explanation) {
                     explanEl.textContent = mathResult.explanation;
@@ -446,22 +555,25 @@
                 resultBox.classList.remove('hidden');
                 resultBox.classList.add('flex', 'flex-col');
 
+                // Rola para o resultado
+                resultBox.scrollIntoView({ behavior: 'smooth' });
+
             } catch (err) {
-                // Fallback: calcula localmente
+                // Fallback: calcula localmente (FIXED: Não troca x por *)
                 try {
                     const localExpr = corrected
                         .replace(/²/g, "**2").replace(/³/g, "**3")
-                        .replace(/[xX×]/g, "*").replace(/÷/g, "/")
+                        .replace(/[×]/g, "*").replace(/÷/g, "/")
                         .replace(/=/g, "").replace(/[^0-9+\-*/\s().]/g, "");
                     const localResult = eval(localExpr);
                     answerEl.textContent = localResult;
                     answerEl.className = "text-5xl font-bold math-font text-zinc-300 break-all px-4";
-                    explanEl.textContent = "⚠ Hub offline – resultado calculado localmente.";
+                    explanEl.textContent = "⚠ Hub offline – cálculo local básico (variáveis não suportadas offline).";
                     explanEl.classList.remove('hidden');
                 } catch {
                     answerEl.textContent = "ERRO";
                     answerEl.className = "text-5xl font-bold math-font text-red-500";
-                    explanEl.textContent = "Hub offline e cálculo local também falhou. Reinicie o app.py.";
+                    explanEl.textContent = "Hub offline. Inicie o app.py para resolver equações complexas.";
                     explanEl.classList.remove('hidden');
                 }
                 resultBox.classList.remove('hidden');
@@ -472,4 +584,5 @@
         }
     </script>
 </body>
+
 </html>
