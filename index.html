@@ -213,7 +213,7 @@
 
             // OCR Real via Tesseract.js (Com Whitelist Estrita e Imagem Processada)
             const { data: { text } } = await Tesseract.recognize(processedDataURL, 'eng', {
-                tessedit_char_whitelist: '0123456789+-*/()=sqrt√%xyz^'
+                tessedit_char_whitelist: '0123456789+-*/()=sqrt√%xyz^²³'
             });
             
             // Tratamento de Ambiguidade e Sanitização (Ajuste Técnico)
@@ -221,7 +221,7 @@
                 .replace(/s/g, "5")  // 'S' vira '5'
                 .replace(/o/g, "0")  // 'O' vira '0'
                 .replace(/i|l/g, "1") // 'I' ou 'l' vira '1'
-                .replace(/[^0-9+\-*/().√%=sqrtxyz^]/g, "") // Limpa lixo residual (INCLUI ^)
+                .replace(/[^0-9+\-*/().√%=sqrtxyz^²³]/g, "") // Limpa lixo residual (INCLUI ^ e expoentes)
                 .trim();
             
             rawIALeading = cleanedText;

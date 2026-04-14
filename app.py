@@ -45,37 +45,42 @@ def calculate_expression(expr):
     """Resolve a conta matemática de forma segura"""
     try:
         # 1. Normalização Inicial
-        expr = expr.replace("÷", "/").replace(",", ".").replace("=", "").replace("^", "**").strip()
+        # Guardamos a expressão original para splitar no '=' depois
+        raw_expr = expr.replace("÷", "/").replace(",", ".").replace("^", "**").replace("²", "**2").replace("³", "**3").strip()
         
         # 2. Suporte para Raiz Quadrada
-        if "√" in expr or "sqrt" in expr:
+        if "√" in raw_expr or "sqrt" in raw_expr:
             import math
-            expr = expr.replace("√", "math.sqrt(").replace("sqrt", "math.sqrt(") + ")"
+            raw_expr = raw_expr.replace("√", "math.sqrt(").replace("sqrt", "math.sqrt(") + ")"
             
         # 3. Suporte para Porcentagem
-        if "%" in expr:
-            expr = expr.replace("%", "/100")
+        if "%" in raw_expr:
+            raw_expr = raw_expr.replace("%", "/100")
 
         # 4. Cálculo de Álgebra e Aritmética
         from fractions import Fraction
         
         # Verifica se há incógnitas (x, y, z)
-        has_variable = any(var in expr for var in ['x', 'y', 'z'])
+        has_variable = any(var in raw_expr for var in ['x', 'y', 'z'])
         
-        if has_variable:
+        if has_variable or "=" in raw_expr:
             # Lógica Algébrica (Sympy)
             from sympy import symbols, solve, Eq, sympify
             x_sym, y_sym, z_sym = symbols('x y z')
             
             # Divide em lados da equação
-            parts = expr.split("=") if "=" in expr else [expr, "0"]
-            if len(parts) < 2: parts = [expr, "0"]
+            parts = raw_expr.split("=") if "=" in raw_expr else [raw_expr, "0"]
+            if len(parts) < 2: parts = [raw_expr, "0"]
             
-            # Prepara a string para o sympy (ex: 2x -> 2*x)
+            # Prepara a string para o sympy (ex: 2x -> 2*x, (x+3)2 -> (x+3)**2)
             proc_parts = []
+            import re
             for p in parts:
-                p_proc = p.replace("x", "*x").replace("y", "*y").replace("z", "*z").replace("**", "*")
-                if p_proc.startswith("*"): p_proc = p_proc[1:]
+                # Transforma 2x em 2*x
+                p_proc = re.sub(r'(\d)([xyz])', r'\1*\2', p)
+                # Transforma )2 em )**2 (caso Tesseract não pegue o ^)
+                p_proc = re.sub(r'(\))(\d)', r'\1**\2', p_proc)
+                # Garante que x sozinho não vire *x indevidamente, mas sympy entende x
                 proc_parts.append(p_proc)
 
             lhs = sympify(proc_parts[0], locals={"x": x_sym, "y": y_sym, "z": z_sym})
@@ -85,9 +90,11 @@ def calculate_expression(expr):
             return f"Solução: {sol}"
         
         # 5. Lógica Aritmética Normal (Fallback)
+        # Remove '=' apenas para o eval final se sobrou algo
+        clean_expr_final = raw_expr.replace("=", "")
         import math
         allowed_chars = "0123456789+-*/(). math.sqrt"
-        clean_expr = "".join([c for c in expr if c in allowed_chars])
+        clean_expr = "".join([c for c in clean_expr_final if c in allowed_chars])
         
         result = eval(clean_expr, {"math": math})
         
