@@ -41,13 +41,18 @@ def normalize(expr: str) -> str:
     return e
 
 def prepare_for_sympy(expr: str) -> str:
+    """Converte expressão normalizada para sintaxe Sympy (injetando multiplicação implícita)."""
     e = expr
-    # 1. 2x ou 2 x -> 2*x
-    e = re.sub(r'(\d)\s*([a-z])', r'\1*\2', e)
-    # 2. (x+3)2 -> (x+3)**2
+    # 1. Multiplicação entre número e letra (2x -> 2*x)
+    e = re.sub(r'(\d)\s*([xyz])', r'\1*\2', e)
+    # 2. Multiplicação ANTES de parênteses (3(4) -> 3*(4), x(2) -> x*(2))
+    # Captura números ou variáveis seguidos de parênteses, tratando espaços.
+    e = re.sub(r'(\d|[xyz])\s*\(', r'\1*(', e)
+    # 3. Multiplicação entre parênteses ((x+1)(x+2) -> (x+1)*(x+2))
+    e = re.sub(r'\)\s*\(', r')*(', e)
+    # 4. Potência DEPOIS de parênteses ou variáveis
     e = re.sub(r'\)\s*(\d+)', r')**\1', e)
-    # 3. MEMÓRIA ALVÉBRICA: Letra seguida de número (a2, x2, b3) -> Potência
-    e = re.sub(r'([a-z])\s*(\d+)', r'\1**\2', e)
+    e = re.sub(r'([xyz])\s*(\d+)', r'\1**\2', e)
     return e
 
 def calculate_expression(expr: str) -> dict:
