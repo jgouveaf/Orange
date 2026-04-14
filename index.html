@@ -183,7 +183,7 @@
                 const data = await res.json();
                 document.getElementById("new-label").value = "";
                 refreshStats();
-                addLog(`Sucesso: Salvo em '${label}'`);
+                updateLog(`Sucesso: Salvo em '${label}'`, 1); // Força um log de sucesso
             } catch (e) {
                 alert("Falha ao salvar: O servidor Antigravity (app.py) não está rodando ou está inacessível.");
                 console.error(e);
@@ -221,7 +221,8 @@
             const log = document.getElementById("recognize-log");
             if (log.childNodes.length > 20) log.removeChild(log.lastChild);
             const entry = document.createElement("div");
-            entry.innerHTML = `<span class="text-indigo-900">[CORE]</span> Detecção: <b class="text-zinc-300">${label}</b> (${Math.round(prob*100)}%)`;
+            const probText = prob === 1 ? "" : ` (${Math.round(prob*100)}%)`;
+            entry.innerHTML = `<span class="text-indigo-900">[CORE]</span> Detecção: <b class="text-zinc-300">${label}</b>${probText}`;
             log.prepend(entry);
         }
 
