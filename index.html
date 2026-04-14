@@ -24,12 +24,25 @@
         <div class="glass max-w-lg w-full rounded-3xl p-8 border-cyan-500/30 shadow-2xl">
             <h2 class="text-2xl font-bold text-cyan-500 mb-6">Como Ativar o Hub Online</h2>
             <div class="space-y-4 text-sm text-zinc-400">
-                <p>Para o site funcionar, você precisa rodar o servidor Antigravity no seu computador:</p>
-                <div class="bg-black/50 p-4 rounded-xl font-mono text-cyan-400 border border-white/5">
-                    1. cd "Documents/GitHub/João Gouvêa/PO2"<br>
-                    2. python app.py
+                <p>Para o site funcionar em qualquer computador, siga estes passos:</p>
+                <div class="space-y-3">
+                    <div class="flex gap-3">
+                        <div class="w-5 h-5 rounded-full bg-zinc-800 text-[10px] flex items-center justify-center border border-white/10">1</div>
+                        <p>Abra a pasta onde você salvou este projeto.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="w-5 h-5 rounded-full bg-zinc-800 text-[10px] flex items-center justify-center border border-white/10">2</div>
+                        <p>Clique na barra de endereços da pasta, digite <b class="text-white">cmd</b> e dê Enter.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="w-5 h-5 rounded-full bg-zinc-800 text-[10px] flex items-center justify-center border border-white/10">3</div>
+                        <p>No terminal que abrir, digite e dê Enter:</p>
+                    </div>
                 </div>
-                <p class="text-[10px] uppercase font-bold text-zinc-600">Dica: Se estiver no GitHub, permita "Conteúdo Inseguro" nas configurações do site.</p>
+                <div class="bg-black/50 p-4 rounded-xl font-mono text-cyan-400 border border-cyan-500/20 shadow-inner">
+                    python app.py
+                </div>
+                <p class="text-[10px] uppercase font-bold text-zinc-600">Atenção: Mantenha essa janela do terminal aberta enquanto usa o site.</p>
             </div>
             <button onclick="toggleHelp()" class="mt-8 w-full bg-cyan-600 py-3 rounded-xl font-bold">ENTENDI</button>
         </div>
