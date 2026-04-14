@@ -79,38 +79,48 @@
     <!-- Modal de Ajuda -->
     <div id="help-modal" class="modal fixed inset-0 z-[100] items-center justify-center p-6">
         <div class="glass max-w-lg w-full rounded-3xl p-8 shadow-2xl border-cyan-500/20">
-            <h2 class="text-2xl font-bold text-cyan-400 mb-6">Como Ativar o Hub Online</h2>
-            <div class="space-y-4 text-sm text-zinc-400">
-                <p>Para o site funcionar, rode o servidor no seu computador:</p>
+            <h2 class="text-2xl font-bold text-cyan-400 mb-4">Guia do MathAI Scanner</h2>
+
+            <div class="space-y-6 text-sm">
+                <!-- Servidor -->
+                <div class="space-y-2">
+                    <p class="text-zinc-500 uppercase text-[10px] font-bold tracking-widest">⚙️ Servidor Local</p>
+                    <p class="text-zinc-400">Certifique-se de que o backend está ativo:</p>
+                    <div class="bg-black/60 p-3 rounded-xl font-mono text-cyan-400 border border-cyan-500/10 text-xs">
+                        python app.py
+                    </div>
+                </div>
+
+                <!-- Dicas de Escrita -->
                 <div class="space-y-3">
-                    <div class="flex gap-3 items-start">
-                        <div
-                            class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">
-                            1</div>
-                        <p>Abra a pasta onde você salvou este projeto.</p>
-                    </div>
-                    <div class="flex gap-3 items-start">
-                        <div
-                            class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">
-                            2</div>
-                        <p>Clique na barra de endereços da pasta, digite <b class="text-white">cmd</b> e pressione
-                            Enter.</p>
-                    </div>
-                    <div class="flex gap-3 items-start">
-                        <div
-                            class="w-6 h-6 rounded-full bg-cyan-600/30 text-[10px] flex items-center justify-center shrink-0 border border-cyan-500/30 mt-0.5">
-                            3</div>
-                        <p>No terminal, digite e pressione Enter:</p>
-                    </div>
+                    <p class="text-zinc-500 uppercase text-[10px] font-bold tracking-widest">✍️ Para ler o x²
+                        perfeitamente</p>
+                    <ul class="space-y-2 text-zinc-400 text-xs">
+                        <li class="flex gap-2"><span>✨</span>
+                            <p>Use <b>fundo branco</b> nítido e caneta escura.</p>
+                        </li>
+                        <li class="flex gap-2"><span>✨</span>
+                            <p>Escreva o <b>x</b> de forma simples (ex: <span class="math-font">x</span>).</p>
+                        </li>
+                        <li class="flex gap-2"><span>✨</span>
+                            <p>Deixe o <b>²</b> claramente menor e acima do x.</p>
+                        </li>
+                        <li class="flex gap-2"><span>✨</span>
+                            <p>Mantenha a câmera <b>paralela</b> ao papel.</p>
+                        </li>
+                    </ul>
                 </div>
-                <div class="bg-black/60 p-4 rounded-xl font-mono text-cyan-400 border border-cyan-500/20 text-sm">
-                    python app.py
+
+                <div class="bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10">
+                    <p class="text-[10px] text-cyan-400 leading-relaxed font-medium italic">
+                        "Se a IA errar, corrija no campo 'IA leu'. Ela aprenderá com sua correção para as próximas
+                        vezes!"
+                    </p>
                 </div>
-                <p class="text-[10px] uppercase font-bold text-zinc-600 pt-2">⚠️ Mantenha a janela do terminal aberta
-                    enquanto usa o site.</p>
             </div>
+
             <button onclick="toggleHelp()"
-                class="mt-6 w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition-colors">ENTENDI</button>
+                class="mt-8 w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition-colors">ENTENDI</button>
         </div>
     </div>
 
@@ -447,16 +457,18 @@
                     }
                 }
 
-                // Limpeza final e heurísticas de correção
+                // Limpeza final e heurísticas de correção baseadas em aprendizado
                 let cleaned = mathStr
                     .replace(/\n+/g, " ")
                     .replace(/[^0-9+\-*/()=xyz^¹²³.√!#%&_ ]/gi, "")
                     .replace(/\s+/g, " ")
-                    // Heurística de potência colada (ex: x2 -> x**2)
-                    .replace(/([xyz])([234z])/g, (m, p1, p2) => {
-                        let exp = ["4", "z"].includes(p2) ? "2" : p2;
-                        return p1 + "**" + exp;
-                    })
+                    // HEURÍSTICA DE TREINAMENTO: O Tesseract erra o x² de várias formas.
+                    // Capturamos letra seguida de algo que parece um 2 pequeno.
+                    .replace(/([xyz])([234zZ*?^°º])/g, "$1**2")
+                    // Se o ² unicode foi lido
+                    .replace(/²/g, "**2")
+                    // Se o x sumiu e sobrou apenas o expoente colado em número
+                    .replace(/(\d)\*\*2/g, "$1*x**2")
                     // Tratamento de Multiplicação: '2 x 3' -> '2 * 3'
                     .replace(/(\d)\s*[xX]\s*(\d)/g, "$1 * $2")
                     .trim();
@@ -476,7 +488,7 @@
                 lastRawRead = cleaned;
                 document.getElementById('detected-text').value = cleaned;
                 document.getElementById('scan-bar').style.opacity = '0';
-                status.textContent = "✅ IA: 'Variáveis x detectadas. Sinal = no final ignorado'.";
+                status.textContent = "🧠 IA: 'Apliquei heurísticas para detectar x². Corrija se eu errei para eu aprender!'";
                 document.getElementById('solve-btn').classList.remove('hidden');
 
                 // Autoplay opcional da leitura
