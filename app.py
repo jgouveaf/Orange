@@ -43,14 +43,13 @@ class SimpleSolve(BaseModel):
 def calculate_expression(expr):
     """Resolve a conta matemática de forma segura"""
     try:
-        # Substitui símbolos visuais por operadores Python
-        expr = expr.replace("x", "*").replace("÷", "/").replace(",", ".")
+        # Substitui símbolos visuais por operadores Python e remove o '='
+        expr = expr.replace("x", "*").replace("÷", "/").replace(",", ".").replace("=", "")
         
-        # Suporte para Raiz Quadrada (√)
-        if "√" in expr:
+        # Suporte para Raiz Quadrada (√ ou sqrt)
+        if "√" in expr or "sqrt" in expr:
             import math
-            # Ex: √144 -> math.sqrt(144)
-            expr = expr.replace("√", "math.sqrt(") + ")"
+            expr = expr.replace("√", "math.sqrt(").replace("sqrt", "math.sqrt(") + ")"
             
         # Suporte para Porcentagem (%)
         if "%" in expr:

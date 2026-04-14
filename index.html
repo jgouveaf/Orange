@@ -178,15 +178,36 @@
             document.getElementById('analysis-box').classList.remove('hidden');
             document.getElementById('analysis-box').classList.add('animate-pulse');
             document.getElementById('scan-bar').style.opacity = '1';
-            document.getElementById('ocr-loading').innerText = "O Tesseract está lendo os números...";
+            document.getElementById('ocr-loading').innerText = "Aja como um motor de OCR Matemático...";
+            
+            // --- LOG DE PASSOS DO SISTEMA ---
+            const processingSteps = [
+                "Filtro de Contraste: Isolando caracteres...",
+                "Segmentação: Identificando símbolos e números...",
+                "Mapeamento de Contexto: Cruzando dados..."
+            ];
+            
+            let stepIdx = 0;
+            const stepInterval = setInterval(() => {
+                if(stepIdx < processingSteps.length) {
+                    document.getElementById('ocr-loading').innerText = processingSteps[stepIdx];
+                    stepIdx++;
+                } else { clearInterval(stepInterval); }
+            }, 600);
 
-            // OCR Real via Tesseract.js
+            // OCR Real via Tesseract.js (Com Whitelist Estrita)
             const { data: { text } } = await Tesseract.recognize(dataURL, 'eng', {
-                tessedit_char_whitelist: '0123456789+-*/()=√%'
+                tessedit_char_whitelist: '0123456789+-*/()=sqrt√%'
             });
             
-            // Sanitiza o texto lido
-            const cleanedText = text.replace(/[^0-9+\-*/().√%= ]/g, "").trim();
+            // Tratamento de Ambiguidade e Sanitização (Ajuste Técnico)
+            let cleanedText = text.toLowerCase()
+                .replace(/s/g, "5")  // 'S' vira '5'
+                .replace(/o/g, "0")  // 'O' vira '0'
+                .replace(/i|l/g, "1") // 'I' ou 'l' vira '1'
+                .replace(/[^0-9+\-*/().√%=sqrt]/g, "") // Limpa lixo residual
+                .trim();
+            
             rawIALeading = cleanedText;
 
             document.getElementById('detected-text').value = cleanedText;
@@ -230,7 +251,7 @@
                 console.error("Erro no Hub:", e);
                 // Fallback: Tenta resolver localmente se o Hub falhar
                 try {
-                    const localResult = eval(correctedText.replace(/[xX]/g, "*").replace(/÷/g, "/").replace(/√/g, "Math.sqrt"));
+                    const localResult = eval(correctedText.replace(/[xX]/g, "*").replace(/÷/g, "/").replace(/√|sqrt/g, "Math.sqrt").replace(/=/g, ""));
                     resVal.innerText = localResult;
                     resVal.classList.add('text-zinc-400'); // Cor diferente para indicar local
                 } catch (localErr) {
