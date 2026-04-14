@@ -256,28 +256,45 @@
             const canvas = document.getElementById('processed-preview');
             const ctx = canvas.getContext('2d');
             
-            // Fator de Escala maior para detalhes de expoentes
-            const scale = 2.5;
+            // Fator de Escala Ultra: 3.0 para capturar detalhes minúsculos de expoentes
+            const scale = 3.0;
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
-
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-            // Binarização Manual: Garante que cores (como o azul no exemplo) fiquem pretas e o fundo branco.
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
+            const threshold = 40; // Sensibilidade: qualquer coisa que não seja quase branco vira preto
+
+            // 1. Binarização por Distância de Cor (Captura azul, vermelho, etc.)
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i], g = data[i+1], b = data[i+2];
-                // Calcula brilho simples
-                const brightness = (r + g + b) / 3;
-                // Se for escuro o suficiente (incluindo azul/verde/vermelho), vira preto total
-                if (brightness < 210) { 
-                    data[i] = data[i+1] = data[i+2] = 0;
-                } else {
-                    data[i] = data[i+1] = data[i+2] = 255;
+                const dist = Math.sqrt((255-r)**2 + (255-g)**2 + (255-b)**2);
+                const val = (dist > threshold) ? 0 : 255;
+                data[i] = data[i+1] = data[i+2] = val;
+            }
+
+            // 2. Filtro de Dilatação (Engrossa os traços para ajudar o OCR a ver letras finas/itálico)
+            const dilated = new Uint8ClampedArray(data.length);
+            const w = canvas.width;
+            const h = canvas.height;
+            for (let y = 1; y < h - 1; y++) {
+                for (let x = 1; x < w - 1; x++) {
+                    let minVal = 255;
+                    // Procura por preto nos vizinhos 3x3
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            const idx = ((y + dy) * w + (x + dx)) * 4;
+                            if (data[idx] < minVal) minVal = data[idx];
+                        }
+                    }
+                    const oIdx = (y * w + x) * 4;
+                    dilated[oIdx] = dilated[oIdx+1] = dilated[oIdx+2] = minVal;
+                    dilated[oIdx+3] = 255;
                 }
             }
-            ctx.putImageData(imageData, 0, 0);
+            
+            ctx.putImageData(new ImageData(dilated, w, h), 0, 0);
 
             document.getElementById('processed-container').classList.remove('hidden');
             return canvas.toDataURL('image/png');
@@ -301,7 +318,8 @@
                 status.textContent = "👁 Analisando geometria e caracteres...";
                 
                 const result = await Tesseract.recognize(processed, 'eng', {
-                    tessedit_char_whitelist: '0123456789+-*/()=xyz^¹²³.√ '
+                    tessedit_char_whitelist: '0123456789+-*/()=xyz^¹²³.√ ',
+                    tessedit_pageseg_mode: '6' // Assume bloco uniforme (ajuda a ligar x com seu expoente)
                 });
 
                 let mathStr = "";
@@ -333,13 +351,19 @@
                     prevBox = box;
                 }
 
-                // Limpeza final e heurísticas de correção
+                // Limpeza final e heurísticas de correção ultra-focadas
                 let cleaned = mathStr
                     .replace(/\n+/g, " ")
                     .replace(/[^0-9+\-*/()=xyz^¹²³.√ ]/gi, "")
                     .replace(/\s+/g, " ")
-                    // Heurística: 4**2 frequentemente vira 4**4 se o Tesseract se confunde
-                    .replace(/([0-9xyz])\*\*([4z])/g, "$1**2") 
+                    // Heurística de ouro: se temos um número seguido de ** e um erro comum, deve ser potenciação
+                    .replace(/([0-9xyz])\*\*([4z7oa])/g, "$1**2") 
+                    // Se o X falhou e sobrou apenas 4**2, tentamos recuperar o X se houver um padrão de incógnita
+                    .replace(/([0-9])\*\*([0-9])/g, (m, p1, p2) => {
+                         // Se for algo como 4**2 em uma equação onde x aparece depois, 
+                         // provavelmente era 4x**2. Mas para ser conservador, mantemos o que a IA viu se for coerente.
+                         return p1 + "**" + p2;
+                    })
                     .trim();
 
                 // Se veio vazio (OCR falhou), usa o texto bruto do resultado
