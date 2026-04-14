@@ -61,11 +61,16 @@ def calculate_expression(expr: str) -> dict:
         current_step = "Normalização de símbolos"
         raw = normalize(expr)
         
-        # Verifica se é uma equação ou contém variáveis
+        # Critério de Decisão: Álgebra vs Aritmética
+        # Só tratamos como equação Sympy se houver variáveis OU se houver dois lados preenchidos (ex: 2+2=4)
         has_var = bool(re.search(r'[a-z]', raw))
-        has_eq  = "=" in raw
+        has_effective_eq = False
+        if "=" in raw:
+            sides = raw.split("=")
+            if len(sides) > 1 and sides[0].strip() and sides[1].strip():
+                has_effective_eq = True
 
-        if has_var or has_eq:
+        if has_var or has_effective_eq:
             from sympy import symbols, solve, Eq, sympify, expand, simplify, latex, Poly
             from sympy.solvers import solve
             
@@ -73,23 +78,13 @@ def calculate_expression(expr: str) -> dict:
             sym_locals = {"x": x, "y": y, "z": z, "sqrt": __import__("sympy").sqrt}
 
             current_step = "Análise de estrutura da equação"
-            if has_eq:
-                sides = raw.split("=", 1)
-                lhs_raw = sides[0].strip()
-                rhs_raw = sides[1].strip() if len(sides) > 1 else ""
-                
-                # Regra: Se não houver nada depois do '=', ignora o '='
-                if not rhs_raw:
-                    has_eq = False
-                    raw = lhs_raw
-                else:
-                    current_step = "Preparação algébrica (Sympy)"
-                    lhs_str = prepare_for_sympy(lhs_raw)
-                    rhs_str = prepare_for_sympy(rhs_raw)
+            sides = raw.split("=", 1)
+            lhs_raw = sides[0].strip()
+            rhs_raw = sides[1].strip() if len(sides) > 1 else "0"
             
-            if not has_eq:
-                lhs_str = prepare_for_sympy(raw)
-                rhs_str = "0"
+            current_step = "Preparação algébrica (Sympy)"
+            lhs_str = prepare_for_sympy(lhs_raw)
+            rhs_str = prepare_for_sympy(rhs_raw) if rhs_raw else "0"
 
             logger.info(f"Sympy LHS: {lhs_str} | RHS: {rhs_str}")
 
