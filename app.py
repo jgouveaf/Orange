@@ -44,13 +44,18 @@ def normalize(expr: str) -> str:
     return e
 
 def prepare_for_sympy(expr: str) -> str:
-    """Converte expressão normalizada para sintaxe Sympy."""
+    """Converte expressão normalizada para sintaxe Sympy (injetando multiplicação implícita)."""
     e = expr
-    # 2x ou 2 x -> 2*x
+    # 1. Multiplicação entre número e letra (2x -> 2*x)
     e = re.sub(r'(\d)\s*([xyz])', r'\1*\2', e)
-    # (x+3)2 ou (x+3) 2 -> (x+3)**2
+    # 2. Multiplicação ANTES de parênteses (3(4) -> 3*(4), x(2) -> x*(2))
+    e = re.sub(r'(\d)\s*\(', r'\1*(', e)
+    e = re.sub(r'([xyz])\s*\(', r'\1*(', e)
+    # 3. Multiplicação entre parênteses ((x+1)(x+2) -> (x+1)*(x+2))
+    e = re.sub(r'\)\s*\(', r')*(', e)
+    # 4. Potência DEPOIS de parênteses ((x+3)2 -> (x+3)**2)
     e = re.sub(r'\)\s*(\d+)', r')**\1', e)
-    # x2 ou x 2 -> x**2
+    # 5. Potência DEPOIS de variável (x2 -> x**2)
     e = re.sub(r'([xyz])\s*(\d+)', r'\1**\2', e)
     return e
 
@@ -162,15 +167,18 @@ def calculate_expression(expr: str) -> dict:
             "explanation": f"❌ FALHA NO PROCESSAMENTO\nPasso: {current_step}\nDetalhe: {str(e)}\n\n💡 Dica: Verifique se o símbolo '*' foi usado para multiplicação e se o expoente '²' está legível."
         }
 
-
-@app.get("/", response_class=HTMLResponse)
-async def serve_frontend():
-    with open("index.html", "r", encoding="utf-8") as f:
-        return f.read()
-
-@app.get("/health")
-async def health():
-    return {"status": "online"}
+def format_pretty(text: str) -> str:
+    """Transforma termos técnicos do Sympy em símbolos matemáticos bonitos."""
+    t = text
+    # Raízes
+    t = re.sub(r'sqrt\((.*?)\)', r'√\1', t)
+    # Potências
+    t = t.replace("**2", "²").replace("**3", "³").replace("**", "^")
+    # Multiplicação e divisões
+    t = t.replace("*", "·").replace("/", "÷")
+    # Espaçamento
+    t = t.replace(",", ", ")
+    return t
 
 @app.post("/aprender")
 async def learn_from_user(data: LearnData):
@@ -193,6 +201,12 @@ async def learn_from_user(data: LearnData):
             f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
 
         resultado = calculate_expression(data.user_corrected)
+        
+        # Formata a resposta final com símbolos bonitos
+        if resultado["answer"] != "ERRO":
+            resultado["answer"] = format_pretty(resultado["answer"])
+            resultado["explanation"] = format_pretty(resultado["explanation"])
+
         logger.info(f"APRENDIZADO: '{data.ia_read}' -> '{data.user_corrected}' | Resultado: {resultado['answer']}")
 
         return {"status": "learned", "result": resultado}
