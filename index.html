@@ -180,11 +180,23 @@
             document.getElementById('scan-bar').style.opacity = '1';
             document.getElementById('ocr-loading').innerText = "Aja como um motor de OCR Matemático...";
             
+            // --- PRÉ-PROCESSAMENTO: FILTRO DE ALTO CONTRASTE ---
+            // Isso transforma a imagem em preto e branco puro para facilitar a distinção dos números
+            const precanvas = document.createElement('canvas');
+            const prectx = precanvas.getContext('2d');
+            const img = new Image();
+            img.src = dataURL;
+            await new Promise(r => img.onload = r);
+            precanvas.width = img.width; precanvas.height = img.height;
+            prectx.filter = 'grayscale(100%) contrast(200%) brightness(80%)';
+            prectx.drawImage(img, 0, 0);
+            const processedDataURL = precanvas.toDataURL('image/png');
+
             // --- LOG DE PASSOS DO SISTEMA ---
             const processingSteps = [
                 "Filtro de Contraste: Isolando caracteres...",
-                "Segmentação: Identificando símbolos e números...",
-                "Mapeamento de Contexto: Cruzando dados..."
+                "Binarização: Refinando bordas numéricas...",
+                "Mapeamento de Contexto: Diferenciando fatores..."
             ];
             
             let stepIdx = 0;
@@ -195,8 +207,8 @@
                 } else { clearInterval(stepInterval); }
             }, 600);
 
-            // OCR Real via Tesseract.js (Com Whitelist Estrita)
-            const { data: { text } } = await Tesseract.recognize(dataURL, 'eng', {
+            // OCR Real via Tesseract.js (Com Whitelist Estrita e Imagem Processada)
+            const { data: { text } } = await Tesseract.recognize(processedDataURL, 'eng', {
                 tessedit_char_whitelist: '0123456789+-*/()=sqrt√%'
             });
             
