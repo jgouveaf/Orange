@@ -15,6 +15,10 @@
         <!-- Main Game HUD -->
         <div id="hud">
             <div class="hud-top">
+                <div class="hud-box level-box">
+                    <label>NET_LAYER</label>
+                    <span id="level-num">01 / 07</span>
+                </div>
                 <div class="hud-box health-box">
                     <label>SYNC STATUS</label>
                     <div class="bar-outer">
@@ -27,6 +31,14 @@
                         <div id="energy-bar" class="bar-inner" style="width: 0%"></div>
                     </div>
                 </div>
+                <div class="hud-box credits-box">
+                    <label>NET_CREDITS</label>
+                    <span id="credits-count">0000</span>
+                </div>
+            </div>
+            
+            <div class="hud-upper-right">
+                <div class="stage-indicator">NOD0<span id="stage-num">1</span></div>
             </div>
             
             <div class="hud-bottom">
@@ -38,26 +50,53 @@
             </div>
         </div>
 
-        <!-- Scanline & Glitch Overlay -->
+        <!-- Upgrade Shop Overlay -->
+        <div id="shop-overlay" class="overlay hidden">
+            <div class="shop-content">
+                <h2>// UPGRADE DATABASE DETECTED</h2>
+                <p>SELECT ONE PROTOCOL TO OVERWRITE EXISTING BUFFER</p>
+                <div class="upgrade-cards">
+                    <div class="upgrade-card" onclick="buyUpgrade('hp')">
+                        <div class="card-icon gold-king"></div>
+                        <h3>REI DE OURO</h3>
+                        <p>+20 MAX SYNC (HP)</p>
+                        <span class="cost">$100</span>
+                    </div>
+                    <div class="upgrade-card" onclick="buyUpgrade('dps')">
+                        <div class="card-icon emerald-ace"></div>
+                        <h3>ÁS ESMERALDA</h3>
+                        <p>PIERCING CODE (ATK)</p>
+                        <span class="cost">$150</span>
+                    </div>
+                    <div class="upgrade-card" onclick="buyUpgrade('energy')">
+                        <div class="card-icon emerald-queen"></div>
+                        <h3>DAMA ESMERALDA</h3>
+                        <p>OVERRIDE REGEN +50%</p>
+                        <span class="cost">$120</span>
+                    </div>
+                </div>
+                <div class="shop-footer">
+                    CREDITS: $<span id="shop-credits">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay & Screens -->
         <div class="overlay crt"></div>
         <div id="glitch-overlay"></div>
-
-        <!-- Canvas Target -->
         <div id="canvas-target"></div>
 
-        <!-- Start Screen -->
         <div id="start-screen" class="overlay">
             <div class="title-container">
                 <h1 class="glitch-text" data-text="GLITCH // OVERRIDE">GLITCH // OVERRIDE</h1>
                 <p>PRESS [ENTER] TO BREACH THE NETWORK</p>
             </div>
             <div class="controls-hint">
-                [W A S D] Move & Aim | [J] Fire | [K] Jump | [L] Pulsar | [SPACE] OVERRIDE
+                [W A S D] Move & Aim | [J] Fire | [K] Jump | [SPACE] OVERRIDE
             </div>
         </div>
     </div>
 
-    <!-- Antigravity Log -->
     <div id="iot-log">
         <div class="log-header">NET_STATUS: CONNECTED</div>
         <div id="log-content"></div>
