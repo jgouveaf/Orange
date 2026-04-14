@@ -56,8 +56,15 @@
                     </div>
                     
                     <button onclick="teachAI()" id="teach-btn" class="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-zinc-200 transition-all flex items-center justify-center gap-2">
-                        <span>CAPTURAR & ENSINAR</span>
+                        <span>CAPTURAR WEBCAM</span>
                     </button>
+
+                    <div class="relative">
+                        <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFileUpload(this)">
+                        <button onclick="document.getElementById('file-input').click()" class="w-full bg-zinc-800 text-zinc-300 border border-zinc-700 font-bold py-4 rounded-xl hover:bg-zinc-700 transition-all flex items-center justify-center gap-2">
+                            <span>UPLOAD DE ARQUIVO</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -141,7 +148,29 @@
 
             const canvas = webcam.canvas;
             const dataURL = canvas.toDataURL("image/png");
+            await sendImage(label, dataURL, btn, "CAPTURAR WEBCAM");
+        }
 
+        async function handleFileUpload(input) {
+            const label = document.getElementById("new-label").value.trim();
+            if (!label) {
+                alert("Defina um rótulo antes de fazer o upload!");
+                input.value = "";
+                return;
+            }
+
+            if (input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const dataURL = e.target.result;
+                    await sendImage(label, dataURL, null, "");
+                    input.value = "";
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function sendImage(label, dataURL, btn, originalText) {
             try {
                 const res = await fetch("/save-example", {
                     method: "POST",
@@ -155,8 +184,10 @@
             } catch (e) {
                 alert("Falha ao salvar no Antigravity.");
             } finally {
-                btn.disabled = false;
-                btn.innerText = "CAPTURAR & ENSINAR";
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
             }
         }
 
