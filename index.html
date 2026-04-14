@@ -211,25 +211,49 @@
                 } else { clearInterval(stepInterval); }
             }, 600);
 
-            // OCR Real via Tesseract.js (Com Whitelist Estrita e Imagem Processada)
-            const { data: { text } } = await Tesseract.recognize(processedDataURL, 'eng', {
+            // OCR Avançado com Análise de Geometria (Coordenadas)
+            const result = await Tesseract.recognize(processedDataURL, 'eng', {
                 tessedit_char_whitelist: '0123456789+-*/()=sqrt√xyz^¹²³'
             });
             
-            // Tratamento de Ambiguidade e Sanitização (Ajuste Técnico)
-            let cleanedText = text.toLowerCase()
+            const symbols = result.data.symbols;
+            let finalMathString = "";
+            let prevBox = null;
+
+            // --- Lógica de Interpretação Geométrica (Interpretador de Estrutura) ---
+            for (let i = 0; i < symbols.length; i++) {
+                const s = symbols[i];
+                const char = s.text.toLowerCase();
+                const box = s.bbox; // {x0, y0, x1, y1}
+
+                if (prevBox) {
+                    // Se o caractere atual estiver significativamente acima do anterior
+                    // e for menor, tratamos como expoente (potência)
+                    const isHigher = box.y0 < (prevBox.y0 - (prevBox.y1 - prevBox.y0) * 0.2);
+                    const isSmaller = (box.y1 - box.y0) < (prevBox.y1 - prevBox.y0) * 0.95;
+
+                    if (isHigher && (isSmaller || !isNaN(char))) {
+                        finalMathString += "**"; 
+                    }
+                }
+
+                finalMathString += char;
+                prevBox = box;
+            }
+
+            // Tratamento de Ambiguidade e Sanitização Final
+            let cleanedText = finalMathString
                 .replace(/s/g, "5")  // 'S' vira '5'
                 .replace(/o/g, "0")  // 'O' vira '0'
                 .replace(/i|l/g, "1") // 'I' ou 'l' vira '1'
-                .replace(/([xyz\)])%/g, "$1²") // Segurança extra
-                .replace(/[^0-9+\-*/().√=sqrtxyz^¹²³]/g, "") // Limpa lixo residual (SEM %)
+                .replace(/[^0-9+\-*/().√=sqrtxyz^¹²³]/g, "") 
                 .trim();
             
             rawIALeading = cleanedText;
 
             document.getElementById('detected-text').value = cleanedText;
             document.getElementById('analysis-box').classList.remove('animate-pulse');
-            document.getElementById('ocr-loading').innerText = "IA concluiu a leitura. Se estiver errado, corrija acima.";
+            document.getElementById('ocr-loading').innerText = "IA concluiu a leitura geométrica.";
             document.getElementById('scan-bar').style.opacity = '0';
             document.getElementById('final-res').classList.remove('hidden');
         }
