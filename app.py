@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 import logging
+import sympy
 
 # Antigravity Math & Learning Hub
 logging.basicConfig(level=logging.INFO, format='[MATH-HUB] %(asctime)s | %(message)s')
@@ -55,22 +56,49 @@ def calculate_expression(expr):
         if "%" in expr:
             expr = expr.replace("%", "/100")
 
-        # 4. Cálculo de Frações e Expressões
-        import math
+        # 4. Cálculo de Álgebra e Aritmética
         from fractions import Fraction
         
+        # Verifica se há incógnitas (x, y, z)
+        has_variable = any(var in expr for var in ['x', 'y', 'z'])
+        
+        if has_variable:
+            # Lógica Algébrica (Sympy)
+            from sympy import symbols, solve, Eq, sympify
+            x_sym, y_sym, z_sym = symbols('x y z')
+            
+            # Divide em lados da equação
+            parts = expr.split("=") if "=" in expr else [expr, "0"]
+            if len(parts) < 2: parts = [expr, "0"]
+            
+            # Prepara a string para o sympy (ex: 2x -> 2*x)
+            proc_parts = []
+            for p in parts:
+                p_proc = p.replace("x", "*x").replace("y", "*y").replace("z", "*z").replace("**", "*")
+                if p_proc.startswith("*"): p_proc = p_proc[1:]
+                proc_parts.append(p_proc)
+
+            lhs = sympify(proc_parts[0], locals={"x": x_sym, "y": y_sym, "z": z_sym})
+            rhs = sympify(proc_parts[1], locals={"x": x_sym, "y": y_sym, "z": z_sym})
+            
+            sol = solve(Eq(lhs, rhs))
+            return f"Solução: {sol}"
+        
+        # 5. Lógica Aritmética Normal (Fallback)
+        import math
         allowed_chars = "0123456789+-*/(). math.sqrt"
         clean_expr = "".join([c for c in expr if c in allowed_chars])
         
         result = eval(clean_expr, {"math": math})
         
-        # Se for uma divisão exata que resultou em fração, simplificamos p/ o usuário
+        # Simplificação de frações
         if "/" in expr and result % 1 != 0:
             f = Fraction(result).limit_denominator()
-            return f"{result} (ou {f})"
+            return f"{round(result, 2)} (ou {f})"
             
         return str(round(result, 2))
     except Exception as e:
+        logger.error(f"Erro no cálculo: {e}")
         return "Erro de Cálculo"
 
 @app.get("/", response_class=HTMLResponse)
