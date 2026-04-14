@@ -89,11 +89,29 @@ def calculate_expression(expr):
                 
                 proc_parts.append(p_proc)
 
+            # Tenta resolver com passos (Lógica Pedagógica)
             lhs = sympify(proc_parts[0], locals={"x": x_sym, "y": y_sym, "z": z_sym})
             rhs = sympify(proc_parts[1], locals={"x": x_sym, "y": y_sym, "z": z_sym})
             
-            sol = solve(Eq(lhs, rhs))
-            return f"Solução: {sol}"
+            # 1. Gera a Equação Completa
+            equation = Eq(lhs, rhs)
+            solutions = solve(equation)
+            
+            # 2. Constrói o Passo a Passo
+            steps = []
+            steps.append(f"• Equação Origem: {lhs} = {rhs}")
+            
+            # Se for quadrática: (x+3)^2 = 4 -> x^2 + 6x + 9 = 4
+            expanded_lhs = lhs.expand()
+            if expanded_lhs != lhs:
+                steps.append(f"• Passo 1: Expandindo parênteses -> {expanded_lhs} = {rhs}")
+            
+            steps.append(f"• Passo Final: Isolando a incógnita para resolver.")
+            
+            return {
+                "answer": f"{solutions}",
+                "explanation": "\n".join(steps)
+            }
         
         # 5. Lógica Aritmética Normal (Fallback)
         # Remove '=' apenas para o eval final se sobrou algo
@@ -104,15 +122,25 @@ def calculate_expression(expr):
         
         result = eval(clean_expr, {"math": math})
         
+        explan = "Lógica Aritmética de Sensores"
         # Simplificação de frações
         if "/" in expr and result % 1 != 0:
             f = Fraction(result).limit_denominator()
-            return f"{round(result, 2)} (ou {f})"
+            final_res = f"{round(result, 2)} (ou {f})"
+            explan = "Frações detectadas e simplificadas automaticamente."
+        else:
+            final_res = str(round(result, 2))
             
-        return str(round(result, 2))
+        return {
+            "answer": final_res,
+            "explanation": explan
+        }
     except Exception as e:
         logger.error(f"Erro no cálculo: {e}")
-        return "Erro de Cálculo"
+        return {
+            "answer": "ERRO",
+            "explanation": f"Não foi possível processar: {e}"
+        }
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_frontend():
