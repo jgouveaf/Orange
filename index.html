@@ -34,8 +34,14 @@
         <!-- Scanner Area -->
         <div class="lg:col-span-7 space-y-6">
             <div class="glass rounded-[2rem] p-4 relative overflow-hidden glow-cyan group">
-                <div id="webcam-container" class="rounded-2xl overflow-hidden bg-zinc-900 aspect-video flex items-center justify-center relative">
-                    <p class="text-zinc-600 text-sm">Pronto para digitalizar...</p>
+                <div id="webcam-container" class="rounded-2xl overflow-hidden bg-zinc-900 aspect-video flex flex-col items-center justify-center relative border border-white/5">
+                    <div class="text-center space-y-4 px-8">
+                        <div class="text-zinc-700 text-6xl">📷</div>
+                        <p class="text-zinc-500 text-sm">Use a câmera ou envie um arquivo para análise.</p>
+                        <button onclick="document.getElementById('file-input').click()" class="bg-zinc-800 text-zinc-100 px-6 py-2 rounded-lg text-xs font-bold hover:bg-zinc-700 transition-colors">
+                            ESCOLHER ARQUIVO DO COMPUTADOR
+                        </button>
+                    </div>
                     <div id="scan-bar" class="scan-line"></div>
                 </div>
                 

@@ -89,5 +89,9 @@ async def solve_math(problem: MathProblem):
         logger.error(f"Erro na análise: {e}")
         return {"status": "error", "message": "Não foi possível ler a conta. Tente uma imagem mais nítida."}
 
+@app.get("/health")
+async def health_check():
+    return {"status": "online"}
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
