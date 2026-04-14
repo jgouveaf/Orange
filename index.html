@@ -3,110 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PO2 | Poker & Strategy</title>
+    <title>Glitch // Override | Protocolo Neon</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
 </head>
 <body>
-    <div id="app">
-        <!-- Header Section -->
-        <header>
-            <div class="logo">
-                <span class="icon">👑</span>
-                <h1>PO2 <small>EDITION</small></h1>
+    <div id="game-container">
+        <!-- Main Game HUD -->
+        <div id="hud">
+            <div class="hud-top">
+                <div class="hud-box health-box">
+                    <label>SYNC STATUS</label>
+                    <div class="bar-outer">
+                        <div id="health-bar" class="bar-inner" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="hud-box override-box">
+                    <label>OVERRIDE.EXE</label>
+                    <div class="bar-outer">
+                        <div id="energy-bar" class="bar-inner" style="width: 0%"></div>
+                    </div>
+                </div>
             </div>
-            <div class="stats-panel">
-                <div class="stat-item">
-                    <label>FICHAS</label>
-                    <span id="balance">1000</span>
+            
+            <div class="hud-bottom">
+                <div id="weapon-display">
+                    <span id="weapon-name">STD_BUFFER</span>
+                    <span id="ammo-count">∞</span>
                 </div>
-                <div class="stat-item">
-                    <label>POT TOTAL</label>
-                    <span id="pot-value">0</span>
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Game Area -->
-        <main>
-            <div class="game-container">
-                <!-- Poker Table -->
-                <div class="poker-table">
-                    <div class="felt"></div>
-                    
-                    <div class="dealer-area">
-                        <div class="community-cards" id="community-cards"></div>
-                    </div>
-
-                    <div class="player-area">
-                        <div class="player-cards" id="player-cards"></div>
-                        <div class="game-controls">
-                            <button id="check-btn" class="game-btn">CHECK / PASSAR</button>
-                            <button id="bet-btn" class="game-btn primary">APOSTAR 10</button>
-                            <button id="fold-btn" class="game-btn danger">FOLD / SAIR</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Strategic Decks Panel -->
-                <aside class="strategy-panel">
-                    <div class="deck-section gold">
-                        <h3>🟡 BARALHO DE OURO</h3>
-                        <p class="deck-desc">Economia e Defesa</p>
-                        <div class="special-cards-grid">
-                            <button class="special-card-btn" onclick="playSpecial('gold_jack')" title="Coletor: +5 fichas">J<span>OURO</span></button>
-                            <button class="special-card-btn" onclick="playSpecial('gold_queen')" title="Escudo: Paga metade se perder">Q<span>OURO</span></button>
-                            <button class="special-card-btn" onclick="playSpecial('gold_king')" title="Imposto: Outros pagam 2">K<span>OURO</span></button>
-                            <button class="special-card-btn" onclick="playSpecial('gold_ace')" title="Cofre: Invencível contra Esmeralda">A<span>OURO</span></button>
-                        </div>
-                    </div>
-
-                    <div class="deck-section emerald">
-                        <h3>🟢 BARALHO DE ESMERALDA</h3>
-                        <p class="deck-desc">Trapaça e Ataque</p>
-                        <div class="special-cards-grid">
-                            <button class="special-card-btn" onclick="playSpecial('emerald_jack')" title="Espião: Ver maior carta mesa">J<span>ESM</span></button>
-                            <button class="special-card-btn" onclick="playSpecial('emerald_queen')" title="Ilusão: Troca carta numérica">Q<span>ESM</span></button>
-                            <button class="special-card-btn" onclick="playSpecial('emerald_king')" title="Veneno: Dobra aposta rival">K<span>ESM</span></button>
-                            <button class="special-card-btn" onclick="playSpecial('emerald_ace')" title="Portal: Cancela efeitos de Ouro">A<span>ESM</span></button>
-                        </div>
-                    </div>
-
-                    <div class="log-panel" id="action-log">
-                        <div class="log-entry">Bem-vindo ao PO2.</div>
-                    </div>
-                </aside>
-            </div>
-        </main>
-
-        <!-- Tutorial Modal -->
-        <div id="tutorial-modal" class="modal">
-            <div class="modal-content">
-                <div class="tutorial-header">
-                    <h2>COMO JOGAR PO2</h2>
-                    <span class="badge">V1.0</span>
-                </div>
-                <div class="tutorial-steps">
-                    <div class="step">
-                        <span class="step-num">1</span>
-                        <p>O objetivo é vencer as mãos de Poker usando cartas tradicionais + <strong>Cartas Estratégicas</strong>.</p>
-                    </div>
-                    <div class="step">
-                        <span class="step-num">2</span>
-                        <p>Use o <strong>Baralho de Ouro</strong> 🟡 para economizar fichas e se proteger.</p>
-                    </div>
-                    <div class="step">
-                        <span class="step-num">3</span>
-                        <p>Use o <strong>Baralho de Esmeralda</strong> 🟢 para atacar adversários e sabotar o jogo.</p>
-                    </div>
-                </div>
-                <button id="close-tutorial" class="primary-button">ESTOU PRONTO</button>
+                <div id="score-display">000000</div>
             </div>
         </div>
 
-        <div id="toast-container"></div>
+        <!-- Scanline & Glitch Overlay -->
+        <div class="overlay crt"></div>
+        <div id="glitch-overlay"></div>
+
+        <!-- Canvas Target -->
+        <div id="canvas-target"></div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="overlay">
+            <div class="title-container">
+                <h1 class="glitch-text" data-text="GLITCH // OVERRIDE">GLITCH // OVERRIDE</h1>
+                <p>PRESS [ENTER] TO BREACH THE NETWORK</p>
+            </div>
+            <div class="controls-hint">
+                [W A S D] Move & Aim | [J] Fire | [K] Jump | [L] Pulsar | [SPACE] OVERRIDE
+            </div>
+        </div>
+    </div>
+
+    <!-- Antigravity Log -->
+    <div id="iot-log">
+        <div class="log-header">NET_STATUS: CONNECTED</div>
+        <div id="log-content"></div>
     </div>
 
     <script src="app.js"></script>
