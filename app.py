@@ -43,13 +43,27 @@ class SimpleSolve(BaseModel):
 def calculate_expression(expr):
     """Resolve a conta matemática de forma segura"""
     try:
-        # Sanitização básica para impedir código malicioso
-        allowed_chars = "0123456789+-*/(). "
+        # Substitui símbolos visuais por operadores Python
+        expr = expr.replace("x", "*").replace("÷", "/").replace(",", ".")
+        
+        # Suporte para Raiz Quadrada (√)
+        if "√" in expr:
+            import math
+            # Ex: √144 -> math.sqrt(144)
+            expr = expr.replace("√", "math.sqrt(") + ")"
+            
+        # Suporte para Porcentagem (%)
+        if "%" in expr:
+            expr = expr.replace("%", "/100")
+
+        # Sanitização básica
+        allowed_chars = "0123456789+-*/(). math.sqrt"
         clean_expr = "".join([c for c in expr if c in allowed_chars])
         
-        # Resolve a expressão
-        result = eval(clean_expr)
-        return str(result)
+        # Resolve a expressão usando o contexto do math
+        import math
+        result = eval(clean_expr, {"math": math})
+        return str(round(result, 2))
     except Exception as e:
         return "Erro de Cálculo"
 

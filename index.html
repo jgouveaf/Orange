@@ -70,6 +70,19 @@
             </div>
             <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(this)">
             <button onclick="document.getElementById('file-input').click()" class="text-xs text-zinc-500 hover:text-cyan-500 font-bold tracking-widest uppercase ml-4 mt-2 transition-colors">Ou carregar arquivo</button>
+
+            <!-- Galeria de Símbolos -->
+            <div class="mt-10 p-6 glass rounded-3xl border-dashed border-white/10">
+                <h4 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4">Símbolos que a IA entende:</h4>
+                <div class="grid grid-cols-4 md:grid-cols-6 gap-4 text-center">
+                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">+</span><p class="text-[8px] text-zinc-600 mt-1">SOMA</p></div>
+                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">-</span><p class="text-[8px] text-zinc-600 mt-1">SUBTRAÇÃO</p></div>
+                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">x</span><p class="text-[8px] text-zinc-600 mt-1">MULTIPLICAÇÃO</p></div>
+                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">÷</span><p class="text-[8px] text-zinc-600 mt-1">DIVISÃO</p></div>
+                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">√</span><p class="text-[8px] text-zinc-600 mt-1">RAIZ</p></div>
+                    <div class="bg-black/20 p-2 rounded-lg border border-white/5"><span class="text-cyan-500 font-bold">%</span><p class="text-[8px] text-zinc-600 mt-1">PERCENTUAL</p></div>
+                </div>
+            </div>
         </div>
 
         <!-- Resolution & Learning Area -->
@@ -155,10 +168,12 @@
             document.getElementById('ocr-loading').innerText = "O Tesseract está lendo os números...";
 
             // OCR Real via Tesseract.js
-            const { data: { text } } = await Tesseract.recognize(dataURL, 'eng');
+            const { data: { text } } = await Tesseract.recognize(dataURL, 'eng', {
+                tessedit_char_whitelist: '0123456789+-*/()=√%'
+            });
             
-            // Sanitiza o texto lido (remove quebras de linha e lixo)
-            const cleanedText = text.replace(/[^0-9+\-*/(). ]/g, "").trim();
+            // Sanitiza o texto lido
+            const cleanedText = text.replace(/[^0-9+\-*/().√%= ]/g, "").trim();
             rawIALeading = cleanedText;
 
             document.getElementById('detected-text').value = cleanedText;
