@@ -271,3 +271,184 @@ footer p { color: var(--text-secondary); }
     background: #22c55e;
     box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
 }
+
+/* === TABS DE NAVEGAÇÃO === */
+.tabs-container {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.nav-tab {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--card-border);
+    padding: 1rem 2rem;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Outfit', sans-serif;
+    backdrop-filter: blur(10px);
+}
+
+.nav-tab:hover {
+    background: rgba(255,255,255,0.03);
+    color: var(--text-primary);
+    border-color: var(--card-hover-border);
+}
+
+.nav-tab.active {
+    background: var(--card-bg);
+    color: var(--primary-orange);
+    border-color: var(--primary-orange);
+    box-shadow: 0 5px 20px rgba(255, 123, 0, 0.15);
+}
+
+/* === HUB DO PROJETO === */
+.hub-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.hub-header h2 {
+    font-size: 2.5rem;
+    color: var(--primary-orange);
+    margin-bottom: 0.5rem;
+}
+
+.hub-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.hub-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    padding: 1.5rem;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.hub-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.hub-card label {
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.8rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+}
+
+.hub-input, .hub-textarea, .part-input, .part-select {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    padding: 1rem;
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    outline: none;
+    transition: border 0.3s;
+}
+
+.hub-input:focus, .hub-textarea:focus, .part-input:focus, .part-select:focus {
+    border-color: var(--primary-orange);
+}
+
+.hub-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.links-area {
+    min-height: 80px;
+}
+
+/* Participants Row */
+.participant-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.part-input { flex: 2; }
+.part-select { flex: 1; cursor: pointer; }
+.remove-part-btn {
+    background: rgba(255, 0, 0, 0.1);
+    color: #ff4d4d;
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 0 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+.remove-part-btn:hover {
+    background: #ff4d4d;
+    color: #fff;
+}
+
+/* Hub Buttons */
+.hub-btn-secondary {
+    background: rgba(255,255,255,0.05);
+    border: 1px dashed rgba(255,255,255,0.2);
+    color: var(--text-secondary);
+    padding: 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    transition: all 0.3s;
+}
+.hub-btn-secondary:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.hub-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+.hub-btn-primary {
+    background: linear-gradient(135deg, var(--primary-orange), var(--secondary-orange));
+    color: #000;
+    border: none;
+    padding: 1.2rem 3rem;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(255, 123, 0, 0.2);
+    transition: all 0.3s;
+}
+.hub-btn-primary:active { transform: scale(0.95); }
+
+.save-status {
+    color: #22c55e;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.save-status.show {
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .hub-grid { grid-template-columns: 1fr; }
+    .participant-row { flex-direction: column; }
+    .nav-tab { width: 100%; margin-bottom: 0.5rem; }
+    .tabs-container { flex-direction: column; gap: 0; }
+}
+

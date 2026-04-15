@@ -32,17 +32,81 @@
     </header>
 
     <main class="container">
-        <!-- Dashboard Filters -->
-        <div class="filter-wrapper">
-            <div class="filter-container">
-                <button class="filter-btn active" data-filter="all">Tudo Combinado</button>
-                <button class="filter-btn" data-filter="ti">💻 TI & IA (Mecânicas)</button>
-                <button class="filter-btn" data-filter="art">🎨 PAV & Publi (Artes)</button>
+        <!-- TABS DE NAVEGAÇÃO -->
+        <div class="tabs-container">
+            <button class="nav-tab active" data-target="view-roadmap">🎯 Roadmap de Etapas</button>
+            <button class="nav-tab" data-target="view-hub">📋 Hub do Projeto</button>
+        </div>
+
+        <!-- VIEW 1: ROADMAP (ANTIGA PAGINA PRINCIPAL) -->
+        <div id="view-roadmap" class="view-section active-view">
+            <!-- Dashboard Filters -->
+            <div class="filter-wrapper">
+                <div class="filter-container">
+                    <button class="filter-btn active" data-filter="all">Tudo Combinado</button>
+                    <button class="filter-btn" data-filter="ti">💻 TI & IA (Mecânicas)</button>
+                    <button class="filter-btn" data-filter="art">🎨 PAV & Publi (Artes)</button>
+                </div>
+            </div>
+
+            <div id="roadmap">
+                <!-- Renderizado via JS -->
             </div>
         </div>
 
-        <div id="roadmap">
-            <!-- Renderizado via JS -->
+        <!-- VIEW 2: HUB DO PROJETO -->
+        <div id="view-hub" class="view-section" style="display: none;">
+            <div class="hub-container">
+                <div class="hub-header">
+                    <h2>Mesa da Equipe</h2>
+                    <p>Preencha as informações do projeto. Ao clicar em salvar, os dados ficam guardados no seu navegador!</p>
+                </div>
+                
+                <div class="hub-grid">
+                    <div class="hub-card full-width">
+                        <label>Nome Oficial do Projeto</label>
+                        <input type="text" id="hub-name" class="hub-input" placeholder="O título incrível do jogo de vocês...">
+                    </div>
+                    
+                    <div class="hub-card full-width">
+                        <label>Participantes & Áreas</label>
+                        <div id="participants-container">
+                            <!-- Itens de participante criados via JS -->
+                        </div>
+                        <button id="add-participant-btn" class="hub-btn-secondary">+ Novo Participante</button>
+                    </div>
+
+                    <div class="hub-card">
+                        <label>Ideia 1</label>
+                        <textarea id="hub-idea1" class="hub-textarea" placeholder="Primeira grande ideia ou conceito principal..."></textarea>
+                    </div>
+                    
+                    <div class="hub-card">
+                        <label>Ideia 2 / Backup</label>
+                        <textarea id="hub-idea2" class="hub-textarea" placeholder="Ideias reserva ou detalhes do mundo..."></textarea>
+                    </div>
+
+                    <div class="hub-card">
+                        <label>Mecânica 1 (Regras do Jogo)</label>
+                        <textarea id="hub-mechanic" class="hub-textarea" placeholder="Como o jogo funciona? Pula, atira, esquiva?"></textarea>
+                    </div>
+
+                    <div class="hub-card">
+                        <label>Estilo de Design (Arte)</label>
+                        <textarea id="hub-design" class="hub-textarea" placeholder="Referências de cores, vibe, se é no espaço, cidade..."></textarea>
+                    </div>
+
+                    <div class="hub-card full-width">
+                        <label>Arquivos & Links Importantes</label>
+                        <textarea id="hub-links" class="hub-textarea links-area" placeholder="Cole aqui links do Google Drive, Canva, Github para o time acessar fácil..."></textarea>
+                    </div>
+                </div>
+
+                <div class="hub-actions">
+                    <button id="hub-save-btn" class="hub-btn-primary">💾 Salvar Alterações</button>
+                    <span id="save-status" class="save-status">Salvo!</span>
+                </div>
+            </div>
         </div>
     </main>
 

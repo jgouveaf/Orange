@@ -418,3 +418,131 @@ const observer = new IntersectionObserver((entries) => {
 
 // Initial Render
 renderRoadmap('all');
+
+/* =========================================
+   SISTEMA DE TABS E HUB DO PROJETO
+========================================= */
+
+const navTabs = document.querySelectorAll('.nav-tab');
+const viewSections = document.querySelectorAll('.view-section');
+
+// Alternar entre Roadmap e Hub
+navTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        // Remover classes ativas
+        navTabs.forEach(t => t.classList.remove('active'));
+        viewSections.forEach(v => {
+            v.classList.remove('active-view');
+            v.style.display = 'none';
+        });
+
+        // Adicionar classe ativa
+        tab.classList.add('active');
+        const targetId = tab.getAttribute('data-target');
+        const targetView = document.getElementById(targetId);
+        targetView.classList.add('active-view');
+        targetView.style.display = 'block';
+    });
+});
+
+// Referências do Hub
+const hubName = document.getElementById('hub-name');
+const hubIdea1 = document.getElementById('hub-idea1');
+const hubIdea2 = document.getElementById('hub-idea2');
+const hubMechanic = document.getElementById('hub-mechanic');
+const hubDesign = document.getElementById('hub-design');
+const hubLinks = document.getElementById('hub-links');
+const addPartBtn = document.getElementById('add-participant-btn');
+const partsContainer = document.getElementById('participants-container');
+const hubSaveBtn = document.getElementById('hub-save-btn');
+const saveStatus = document.getElementById('save-status');
+
+// Helper para criar linha de participante
+function createParticipantRow(nameValue = '', roleValue = 'Programador (TI/IA)') {
+    const row = document.createElement('div');
+    row.className = 'participant-row';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'part-input';
+    input.placeholder = 'Nome do Membro';
+    input.value = nameValue;
+
+    const select = document.createElement('select');
+    select.className = 'part-select';
+    
+    const options = [
+        'Programador (TI/IA)',
+        'Artista (PAV)',
+        'Publicitário/Design',
+        'Outro'
+    ];
+    
+    options.forEach(opt => {
+        const optionEl = document.createElement('option');
+        optionEl.value = opt;
+        optionEl.textContent = opt;
+        if(opt === roleValue) optionEl.selected = true;
+        select.appendChild(optionEl);
+    });
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-part-btn';
+    removeBtn.innerHTML = 'X';
+    removeBtn.onclick = () => row.remove();
+
+    row.appendChild(input);
+    row.appendChild(select);
+    row.appendChild(removeBtn);
+    partsContainer.appendChild(row);
+}
+
+// Lógica de Carregamento Inicial
+function loadHubData() {
+    hubName.value = localStorage.getItem('hub-name') || '';
+    hubIdea1.value = localStorage.getItem('hub-idea1') || '';
+    hubIdea2.value = localStorage.getItem('hub-idea2') || '';
+    hubMechanic.value = localStorage.getItem('hub-mechanic') || '';
+    hubDesign.value = localStorage.getItem('hub-design') || '';
+    hubLinks.value = localStorage.getItem('hub-links') || '';
+
+    const savedParts = JSON.parse(localStorage.getItem('hub-participants')) || [];
+    if (savedParts.length > 0) {
+        savedParts.forEach(p => createParticipantRow(p.name, p.role));
+    } else {
+        createParticipantRow(); // Cria um vazio por padrão
+    }
+}
+
+// Lógica de Salvamento
+hubSaveBtn.addEventListener('click', () => {
+    localStorage.setItem('hub-name', hubName.value);
+    localStorage.setItem('hub-idea1', hubIdea1.value);
+    localStorage.setItem('hub-idea2', hubIdea2.value);
+    localStorage.setItem('hub-mechanic', hubMechanic.value);
+    localStorage.setItem('hub-design', hubDesign.value);
+    localStorage.setItem('hub-links', hubLinks.value);
+
+    // Salvar participantes
+    const participants = [];
+    const rows = partsContainer.querySelectorAll('.participant-row');
+    rows.forEach(row => {
+        const name = row.querySelector('.part-input').value;
+        const role = row.querySelector('.part-select').value;
+        if (name.trim() !== '') {
+            participants.push({ name, role });
+        }
+    });
+    localStorage.setItem('hub-participants', JSON.stringify(participants));
+
+    // Mostrar alerta visual "Salvo!"
+    saveStatus.classList.add('show');
+    setTimeout(() => {
+        saveStatus.classList.remove('show');
+    }, 2500);
+});
+
+addPartBtn.addEventListener('click', () => createParticipantRow());
+
+// Inicia dados ao abrir
+loadHubData();
