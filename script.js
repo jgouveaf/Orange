@@ -339,6 +339,11 @@ function renderRoadmap(filterValue) {
             card.className = 'step-card';
             card.style.setProperty('--tag-color', step.color);
             
+            const savedProgress = localStorage.getItem('progress_' + step.id) || 0;
+            if (savedProgress == 100) {
+                card.classList.add('completed');
+            }
+            
             card.innerHTML = `
                 <div class="step-header">
                     <span class="step-number">${step.id.toString().padStart(2, '0')}</span>
@@ -350,6 +355,13 @@ function renderRoadmap(filterValue) {
                     <strong>Por que fazer isso?</strong>
                     ${step.reason}
                 </div>
+                <div class="progress-container">
+                    <div class="progress-labels">
+                        <span>Progresso</span>
+                        <span class="progress-percent" id="perc_${step.id}">${savedProgress}%</span>
+                    </div>
+                    <input type="range" class="progress-slider" min="0" max="100" value="${savedProgress}" data-step-id="${step.id}">
+                </div>
             `;
             gridEl.appendChild(card);
         });
@@ -357,6 +369,30 @@ function renderRoadmap(filterValue) {
         phaseEl.appendChild(phaseTitle);
         phaseEl.appendChild(gridEl);
         roadmapContainer.appendChild(phaseEl);
+    });
+
+    // Event Listeners para os sliders criados
+    const sliders = document.querySelectorAll('.progress-slider');
+    sliders.forEach(slider => {
+        slider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            const stepId = e.target.getAttribute('data-step-id');
+            const percentLabel = document.getElementById('perc_' + stepId);
+            percentLabel.textContent = val + '%';
+            
+            const card = e.target.closest('.step-card');
+            if(val == 100) {
+                card.classList.add('completed');
+            } else {
+                card.classList.remove('completed');
+            }
+        });
+        
+        slider.addEventListener('change', (e) => {
+            const val = e.target.value;
+            const stepId = e.target.getAttribute('data-step-id');
+            localStorage.setItem('progress_' + stepId, val);
+        });
     });
 }
 

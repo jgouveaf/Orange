@@ -186,3 +186,88 @@ footer p { color: var(--text-secondary); }
     .filter-container { flex-direction: column; width: 100%; border-radius: 20px; padding: 1rem; }
     .filter-btn { width: 100%; }
 }
+
+/* Progress Container Styles */
+.progress-container {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed rgba(255,255,255,0.1);
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.progress-percent {
+    color: var(--primary-orange);
+}
+
+/* Base Slider Styles */
+.progress-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.progress-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-orange);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255, 123, 0, 0.5);
+    transition: all 0.3s;
+}
+
+.progress-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-orange);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255, 123, 0, 0.5);
+    transition: all 0.3s;
+    border: none;
+}
+
+/* Completed State Styling */
+.step-card.completed {
+    border-color: #22c55e;
+    box-shadow: 0 10px 30px rgba(34, 197, 94, 0.15);
+}
+
+.step-card.completed::before {
+    background: radial-gradient(circle at top right, #22c55e, transparent 70%);
+}
+
+.step-card.completed::after {
+    background: #22c55e;
+    box-shadow: 0 0 15px #22c55e;
+}
+
+.step-card.completed .progress-percent {
+    color: #22c55e;
+}
+
+.step-card.completed .progress-slider::-webkit-slider-thumb {
+    background: #22c55e;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
+}
+
+.step-card.completed .progress-slider::-moz-range-thumb {
+    background: #22c55e;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
+}
