@@ -64,8 +64,8 @@
                 
                 <div class="hub-grid">
                     <div class="hub-card full-width">
-                        <label>Nome Oficial do Projeto</label>
-                        <input type="text" id="hub-name" class="hub-input" placeholder="O título incrível do jogo de vocês...">
+                        <label>Nome do Projeto</label>
+                        <input type="text" id="hub-name" class="hub-input" placeholder="Insira o nome oficial do projeto...">
                     </div>
                     
                     <div class="hub-card full-width">
@@ -76,24 +76,22 @@
                         <button id="add-participant-btn" class="hub-btn-secondary">+ Novo Participante</button>
                     </div>
 
-                    <div class="hub-card">
-                        <label>Ideia 1</label>
-                        <textarea id="hub-idea1" class="hub-textarea" placeholder="Primeira grande ideia ou conceito principal..."></textarea>
-                    </div>
-                    
-                    <div class="hub-card">
-                        <label>Ideia 2 / Backup</label>
-                        <textarea id="hub-idea2" class="hub-textarea" placeholder="Ideias reserva ou detalhes do mundo..."></textarea>
+                    <div class="hub-card full-width">
+                        <label>Quadro de Ideias & Conceitos</label>
+                        <div id="ideas-container">
+                            <!-- Itens de ideias criados via JS -->
+                        </div>
+                        <button id="add-idea-btn" class="hub-btn-secondary">+ Adicionar Nova Ideia</button>
                     </div>
 
                     <div class="hub-card">
-                        <label>Mecânica 1 (Regras do Jogo)</label>
-                        <textarea id="hub-mechanic" class="hub-textarea" placeholder="Como o jogo funciona? Pula, atira, esquiva?"></textarea>
+                        <label>Mecânicas Principais</label>
+                        <textarea id="hub-mechanic" class="hub-textarea" placeholder="Descreva as regras, movimentação e sistemas do jogo..."></textarea>
                     </div>
 
                     <div class="hub-card">
-                        <label>Estilo de Design (Arte)</label>
-                        <textarea id="hub-design" class="hub-textarea" placeholder="Referências de cores, vibe, se é no espaço, cidade..."></textarea>
+                        <label>Direção de Arte & Design</label>
+                        <textarea id="hub-design" class="hub-textarea" placeholder="Defina o escopo visual, paleta de cores e atmosfera..."></textarea>
                     </div>
 
                     <div class="hub-card full-width">
