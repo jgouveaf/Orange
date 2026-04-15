@@ -4,690 +4,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Antigravity | Math AI Scanner</title>
+    <title>Cartoonify | Camera Effect</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: #05050a;
+            background: #0f172a;
+            color: white;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-image: radial-gradient(circle at top center, #1e293b 0%, #020617 100%);
+        }
+        
+        .title-font {
+            font-family: 'Outfit', sans-serif;
         }
 
-        .math-font {
-            font-family: 'Fira Code', monospace;
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .video-container {
+            position: relative;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
         }
 
-        .scan-line {
+        #webcam-video {
+            display: none;
+        }
+
+        #canvas-output {
             position: absolute;
             width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #06b6d4, transparent);
-            top: 0;
-            animation: scan 2.5s ease-in-out infinite;
-            z-index: 20;
-            opacity: 0;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 1.5rem;
+            transform: scaleX(-1); /* Espelhar a câmera */
         }
 
-        @keyframes scan {
-            0% {
-                top: 0;
-                opacity: 0
-            }
-
-            20% {
-                opacity: 1
-            }
-
-            80% {
-                opacity: 1
-            }
-
-            100% {
-                top: 100%;
-                opacity: 0
-            }
-        }
-
-        .modal {
-            display: none;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-        }
-
-        .modal.active {
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
+            gap: 15px;
+            z-index: 50;
         }
 
-        #processed-preview {
-            max-height: 120px;
-            object-fit: contain;
+        .btn {
+            padding: 14px 28px;
+            border-radius: 9999px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ec4899, #f97316);
+            color: white;
+            box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 10px -3px rgba(236, 72, 153, 0.5);
+        }
+        
+        .btn-primary:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        .live-indicator {
+            position: relative;
+        }
+        
+        .live-indicator::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse-ring 2s infinite;
+            z-index: -1;
         }
     </style>
 </head>
 
-<body class="text-zinc-100 min-h-screen flex flex-col p-4 md:p-8">
+<body class="p-4 md:p-6 pb-0">
 
-    <!-- Modal de Ajuda -->
-    <div id="help-modal" class="modal fixed inset-0 z-[100] items-center justify-center p-6">
-        <div class="glass max-w-lg w-full rounded-3xl p-8 shadow-2xl border-cyan-500/20">
-            <h2 class="text-2xl font-bold text-cyan-400 mb-4">Guia de Limitações ✨</h2>
+    <!-- Filtro SVG para Efeito Cartoon -->
+    <svg width="0" height="0" style="position: absolute; z-index: -1;">
+        <defs>
+            <filter id="cartoon-effect" color-interpolation-filters="sRGB">
+                <!-- Suavização para remover detalhes/ruído -->
+                <feGaussianBlur stdDeviation="3.5" result="blur" />
+                
+                <!-- Posterização reduzindo paleta de cores para criar blocos (estilo desenho animado) -->
+                <feComponentTransfer in="blur" result="posterized">
+                    <feFuncR type="discrete" tableValues="0 0.15 0.3 0.45 0.6 0.75 0.9 1" />
+                    <feFuncG type="discrete" tableValues="0 0.15 0.3 0.45 0.6 0.75 0.9 1" />
+                    <feFuncB type="discrete" tableValues="0 0.15 0.3 0.45 0.6 0.75 0.9 1" />
+                </feComponentTransfer>
+                
+                <!-- Aumento do contraste básico dentro do SVG -->
+                <feColorMatrix type="matrix" values="1.2 0 0 0 -0.1  0 1.2 0 0 -0.1  0 0 1.2 0 -0.1  0 0 0 1 0" result="contrast" in="posterized" />
+            </filter>
+        </defs>
+    </svg>
 
-            <div class="space-y-6 text-sm">
-                <!-- Informações de Uso -->
-                <div class="space-y-4">
-                    <p class="text-zinc-500 uppercase text-[10px] font-bold tracking-widest">⚠️ Importante saber</p>
-
-                    <div class="grid grid-cols-1 gap-4">
-                        <div class="flex gap-3 items-start bg-white/5 p-3 rounded-xl border border-white/5">
-                            <span class="text-lg">🚫</span>
-                            <div>
-                                <h4 class="text-xs font-bold text-white">Cores e Ruído</h4>
-                                <p class="text-[11px] text-zinc-400">A IA não lê textos coloridos. Use sempre **preto no
-                                    branco** para evitar erros.</p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-3 items-start bg-white/5 p-3 rounded-xl border border-white/5">
-                            <span class="text-lg">⚖️</span>
-                            <div>
-                                <h4 class="text-xs font-bold text-white">Frações em pé</h4>
-                                <p class="text-[11px] text-zinc-400">Não escreva frações verticais. Use sempre a barra
-                                    <b>/</b> no mesmo nível (ex: 1/2).</p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-3 items-start bg-white/5 p-3 rounded-xl border border-white/5">
-                            <span class="text-lg">⚡</span>
-                            <div>
-                                <h4 class="text-xs font-bold text-white">Potências</h4>
-                                <p class="text-[11px] text-zinc-400">Para garantir o sucesso, use o sinal <b>^</b> (ex:
-                                    x^2). O sistema <b>consegue resolver</b>, mas a leitura é melhor assim.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10">
-                    <p class="text-[10px] text-cyan-400 leading-relaxed font-medium italic">
-                        Dica: O servidor Python deve estar rodando no CMD/PowerShell com a sua API Key do Gemini para
-                        máxima precisão!
-                    </p>
-                </div>
+    <header class="max-w-6xl w-full mx-auto flex justify-between items-center mb-6 z-10 glass-panel px-6 py-4 rounded-2xl">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-orange-400 rounded-2xl flex items-center justify-center font-bold text-white text-2xl shadow-lg shadow-pink-500/30">
+                🎨
             </div>
-
-            <button onclick="toggleHelp()"
-                class="mt-8 w-full bg-cyan-600 hover:bg-cyan-500 py-3 rounded-xl font-bold transition-colors">ENTENDI OS
-                AVISOS</button>
-        </div>
-    </div>
-
-    <!-- Header -->
-    <header class="max-w-6xl w-full mx-auto flex justify-between items-center mb-8">
-        <div class="flex items-center gap-3">
-            <div
-                class="w-10 h-10 bg-cyan-600 rounded-xl flex items-center justify-center font-bold text-white text-xl math-font">
-                ∑</div>
             <div>
-                <h1 class="text-lg font-bold tracking-tight leading-none">MathAI Scanner</h1>
-                <p class="text-[10px] text-zinc-500 uppercase tracking-widest">Antigravity Hub</p>
+                <h1 class="text-2xl font-black tracking-tight leading-none bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-orange-400 title-font">Cartoonify</h1>
+                <p class="text-[11px] text-zinc-400 uppercase tracking-widest mt-1 font-bold">Live Camera Effect</p>
             </div>
         </div>
-        <div class="flex gap-3 items-center">
-            <button onclick="toggleHelp()"
-                class="w-9 h-9 rounded-full glass flex items-center justify-center text-zinc-400 hover:text-cyan-400 transition-colors">?</button>
-            <div id="status-badge"
-                class="flex items-center gap-2 px-4 py-2 rounded-full glass text-[11px] font-bold uppercase tracking-widest">
-                <div id="status-dot" class="w-2 h-2 rounded-full bg-red-500"></div>
-                <span id="status-text">Hub Offline</span>
-            </div>
+        <div id="live-badge" class="hidden px-4 py-2 rounded-full bg-green-500/10 text-green-400 text-xs font-bold border border-green-500/20 flex items-center gap-2 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+            <div class="live-indicator w-2.5 h-2.5 rounded-full bg-green-500"></div>
+            ON-AIR
         </div>
     </header>
 
-    <main class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
-
-        <!-- SCANNER -->
-        <div class="lg:col-span-7 space-y-4">
-
-            <!-- Área de Input -->
-            <div class="glass rounded-2xl p-4 space-y-3">
-                <div class="flex items-center justify-between mb-1">
-                    <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Entrada de Imagem</p>
-                    <p class="text-[10px] text-amber-500 font-semibold">⚠ Imagem simples com a conta apenas</p>
+    <main class="flex-1 w-full max-w-6xl mx-auto flex flex-col items-center">
+        <div class="video-container">
+            <!-- Tela de Setup -->
+            <div id="setup-view" class="text-center absolute inset-0 flex flex-col items-center justify-center z-20">
+                <div class="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl border border-white/10 backdrop-blur-md">
+                    📷
                 </div>
-
-                <!-- Drop Zone / Media Area -->
-                <div id="media-area" class="relative rounded-xl bg-zinc-900/80 border-2 border-dashed border-zinc-700 hover:border-cyan-500 transition-colors overflow-hidden aspect-video flex flex-col items-center justify-center">
-                    
-                    <!-- Estado Inicial: Upar Imagem -->
-                    <div id="drop-placeholder" onclick="document.getElementById('file-input').click()" class="cursor-pointer text-center space-y-3 px-8 w-full h-full flex flex-col items-center justify-center hover:bg-white/5 transition-colors z-10">
-                        <div class="text-5xl text-zinc-700">📄</div>
-                        <p class="text-zinc-500 text-sm">Clique para enviar uma imagem ou abra a webcam</p>
-                        <p class="text-zinc-600 text-xs">JPG, PNG, WebP</p>
-                    </div>
-
-                    <!-- Imagem Preview -->
-                    <img id="img-preview" onclick="document.getElementById('file-input').click()" class="hidden cursor-pointer absolute inset-0 w-full h-full object-contain bg-zinc-900 z-10" src="" alt="Preview">
-                    
-                    <!-- Scanner Animation -->
-                    <div id="scan-bar" class="scan-line z-20"></div>
-
-                    <!-- Webcam UI -->
-                    <div id="webcam-container" class="hidden absolute inset-0 w-full h-full bg-black z-30 flex flex-col">
-                        <video id="webcam-video" autoplay playsinline class="flex-1 w-full h-full object-cover"></video>
-                        <div class="absolute bottom-4 inset-x-0 flex justify-center gap-4 px-4 z-40">
-                            <button onclick="captureWebcam()" class="bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center gap-2">📸 CAPTURAR</button>
-                            <button onclick="stopWebcam()" class="bg-red-600/80 hover:bg-red-500 p-3 rounded-xl text-white backdrop-blur-md transition-all">❌</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex gap-3">
-                    <button onclick="document.getElementById('file-input').click()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl font-bold text-xs transition-colors text-white">📁 CARREGAR ARQUIVO</button>
-                    <button onclick="startWebcam()" id="btn-webcam" class="flex-1 bg-black hover:bg-cyan-900 hover:text-white py-3 rounded-xl font-bold text-xs transition-colors text-cyan-500 border border-cyan-700">📷 ABRIR WEBCAM</button>
-                </div>
-
-                <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(this)">
-
-                <!-- Processed Preview -->
-                <div id="processed-container" class="hidden space-y-1">
-                    <p class="text-[10px] text-zinc-600 uppercase font-bold tracking-widest">O que a IA vê (após
-                        filtro):</p>
-                    <canvas id="processed-preview"
-                        class="w-full rounded-lg border border-zinc-800 bg-zinc-900"></canvas>
-                </div>
+                <h2 class="text-3xl font-bold mb-3 title-font">Pronto para virar desenho?</h2>
+                <p class="text-zinc-400 mb-8 max-w-md text-sm leading-relaxed">
+                    Ative sua câmera para transformarmos seu rosto em um cartoon incrível com renderização de GPU em tempo real. Não precisa do CMD!
+                </p>
+                <button onclick="startCamera()" class="btn btn-primary text-lg px-8 py-4">
+                    <span class="text-xl">🚀</span> INICIAR CÂMERA
+                </button>
             </div>
 
-            <!-- Botão de Scan -->
-            <button onclick="runScan()" id="scan-btn"
-                class="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white py-4 rounded-2xl font-bold text-sm transition-all shadow-lg shadow-cyan-600/20">
-                🔍 ESCANEAR E RESOLVER
-            </button>
+            <!-- Vídeo original (escondido) e Canvas para processamento -->
+            <video id="webcam-video" autoplay playsinline></video>
+            <canvas id="canvas-output" class="hidden"></canvas>
 
-            <!-- Biblioteca de Símbolos -->
-            <div class="glass rounded-2xl p-4">
-                <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-3">Símbolos suportados</p>
-                <div class="grid grid-cols-4 gap-2 text-center text-sm">
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">+ −</span>
-                        <p class="text-[9px] text-zinc-600 mt-1">SOMA / SUB</p>
-                    </div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">× ÷</span>
-                        <p class="text-[9px] text-zinc-600 mt-1">MULT / DIV</p>
-                    </div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">x² ^</span>
-                        <p class="text-[9px] text-zinc-600 mt-1">POTÊNCIA</p>
-                    </div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">√</span>
-                        <p class="text-[9px] text-zinc-600 mt-1">RAIZ</p>
-                    </div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">x y</span>
-                        <p class="text-[9px] text-zinc-600 mt-1">INCÓGNITA</p>
-                    </div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">( )</span>
-                        <p class="text-[9px] text-zinc-600 mt-1">PARÊNTESES</p>
-                    </div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">=</span>
-                        <p class="text-[9px] text-zinc-600 mt-1">EQUAÇÃO</p>
-                    </div>
-                    <div class="bg-zinc-900 p-2 rounded-lg"><span class="text-cyan-400 math-font">a/b</span>
-                        <p class="text-[9px] text-zinc-600 mt-1">FRAÇÃO</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- PAINEL DE RESULTADO -->
-        <div class="lg:col-span-5">
-            <div class="glass rounded-2xl p-6 h-full flex flex-col gap-6 min-h-[500px]">
-
-                <p class="text-[10px] text-cyan-500 uppercase font-bold tracking-widest">Análise & Resolução</p>
-
-                <!-- O que a IA leu -->
-                <div id="analysis-box" class="space-y-2 hidden">
-                    <div class="flex justify-between items-center">
-                        <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">IA leu:</label>
-                        <button onclick="speakMath(document.getElementById('detected-text').value)"
-                            class="text-cyan-500 hover:text-cyan-400 p-1 rounded-lg transition-colors"
-                            title="Ouvir expressão">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                            </svg>
-                        </button>
-                    </div>
-                    <input type="text" id="detected-text"
-                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-cyan-500 outline-none rounded-xl px-4 py-3 text-lg math-font text-cyan-300 transition-colors"
-                        placeholder="Corrija aqui se necessário...">
-                    <p id="ocr-status" class="text-[10px] text-zinc-500 italic"></p>
-                </div>
-
-                <!-- Resultado -->
-                <div id="result-box" class="hidden flex-1 flex flex-col justify-center items-center text-center gap-4">
-                    <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Resultado</p>
-                    <div class="relative group">
-                        <div id="answer-val" class="text-5xl font-bold math-font text-white break-all px-4"></div>
-                        <button onclick="speakMath(document.getElementById('answer-val').textContent)"
-                            class="absolute -right-8 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div id="explanation-val"
-                        class="hidden w-full text-left bg-black/40 border border-zinc-800 rounded-xl p-4 text-[11px] font-mono text-zinc-500 whitespace-pre-wrap leading-5">
-                    </div>
-                </div>
-
-                <!-- Hint inicial -->
-                <div id="hint-panel"
-                    class="flex-1 flex flex-col items-center justify-center text-center opacity-20 py-10 gap-3">
-                    <div class="text-5xl">∫</div>
-                    <p class="text-sm">Envie uma imagem com a conta para começar.</p>
-                </div>
-
-                <!-- Botão de aprendizado -->
-                <button onclick="saveAndSolve()" id="solve-btn"
-                    class="w-full hidden bg-cyan-900/30 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-600 hover:text-white py-3 rounded-xl text-xs font-bold transition-all">
-                    💾 CONFIRMAR TEXTO E RESOLVER
+            <!-- Controles Inferiores -->
+            <div id="controls-view" class="controls hidden">
+                <button onclick="toggleEffect()" id="effect-btn" class="btn btn-secondary">
+                    <span class="text-xl">✨</span> Normal
+                </button>
+                <button onclick="takeSnapshot()" class="btn btn-primary">
+                    <span class="text-xl">📸</span> FOTO
                 </button>
             </div>
         </div>
-
+        
+        <!-- Modal que aparece após tirar a foto -->
+        <div id="snapshot-modal" class="fixed inset-0 bg-black/95 z-[100] hidden flex-col items-center justify-center p-6 backdrop-blur-xl opacity-0 transition-opacity duration-300">
+            <h3 class="text-3xl font-black mb-2 text-white text-center title-font bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-orange-400">Excelente Captura!</h3>
+            <p class="text-zinc-400 mb-8 text-sm">Sua obra de arte está pronta para ser salva.</p>
+            
+            <!-- Imagem espelhada para corresponder ao que vemos na câmera -->
+            <img id="snapshot-preview" class="max-h-[60vh] rounded-2xl shadow-[0_0_40px_rgba(236,72,153,0.3)] border border-white/20 mb-8 transform -scale-x-100" />
+            
+            <div class="flex gap-4 w-full max-w-sm">
+                <button onclick="closeSnapshot()" class="btn btn-secondary flex-1 justify-center">Voltar</button>
+                <a id="download-btn" class="btn btn-primary flex-1 justify-center text-center" download="cartoon_photo.png">
+                    BAIXAR ⬇️
+                </a>
+            </div>
+        </div>
     </main>
 
     <script>
-        const HUB = "http://localhost:8000";
-        let lastImage = null;
-        let lastRawRead = "";
-        let geminiEnabled = false;
+        const video = document.getElementById('webcam-video');
+        const canvas = document.getElementById('canvas-output');
+        const ctx = canvas.getContext('2d', { willReadFrequently: false });
+        const setupView = document.getElementById('setup-view');
+        const controlsView = document.getElementById('controls-view');
+        const effectBtn = document.getElementById('effect-btn');
+        const liveBadge = document.getElementById('live-badge');
+        
+        let stream;
+        let isEffectActive = true;
+        let animationFrameId;
 
-        function speakMath(text) {
-            if (!window.speechSynthesis) return;
-            window.speechSynthesis.cancel();
-            let msg = text
-                .replace(/\*\*/g, " elevado a ")
-                .replace(/\^/g, " elevado a ")
-                .replace(/²/g, " ao quadrado")
-                .replace(/³/g, " ao cubo")
-                .replace(/\*/g, " vezes ")
-                .replace(/×/g, " vezes ")
-                .replace(/\//g, " dividido por ")
-                .replace(/÷/g, " dividido por ")
-                .replace(/\+/g, " mais ")
-                .replace(/-/g, " menos ")
-                .replace(/=/g, " igual a ")
-                .replace(/sqrt/g, " raiz quadrada de ")
-                .replace(/√/g, " raiz quadrada de ");
-            msg = msg.replace(/ elevado a 2(\s|$)/g, " ao quadrado$1")
-                .replace(/ elevado a 3(\s|$)/g, " ao cubo$1");
-            const utterance = new SpeechSynthesisUtterance(msg);
-            utterance.lang = 'pt-BR';
-            utterance.rate = 1.1;
-            utterance.pitch = 1.0;
-            window.speechSynthesis.speak(utterance);
-        }
-
-        function toggleHelp() { document.getElementById('help-modal').classList.toggle('active'); }
-
-        // Health heartbeat - verifica servidor E Gemini
-        setInterval(async () => {
-            const dot = document.getElementById('status-dot');
-            const txt = document.getElementById('status-text');
+        async function startCamera() {
             try {
-                const r = await fetch(`${HUB}/health`, { signal: AbortSignal.timeout(2000) });
-                if (r.ok) {
-                    const data = await r.json();
-                    geminiEnabled = data.gemini === true;
-                    dot.className = "w-2 h-2 rounded-full " + (geminiEnabled ? "bg-purple-400" : "bg-cyan-400");
-                    txt.textContent = geminiEnabled ? "Hub + Gemini AI" : "Hub Online";
-                    txt.className = geminiEnabled ? "text-purple-400" : "text-cyan-400";
-                    return;
-                }
-            } catch { }
-            geminiEnabled = false;
-            dot.className = "w-2 h-2 rounded-full bg-red-500";
-            txt.textContent = "Hub Offline";
-            txt.className = "text-zinc-400";
-        }, 3000);
-
-        // Tenta usar Gemini OCR (IA de alta precisão para matemática)
-        async function tryGeminiOCR(imageData) {
-            const res = await fetch(`${HUB}/gemini-ocr`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_data: imageData })
-            });
-            if (!res.ok) throw new Error('Gemini indisponível');
-            const data = await res.json();
-            return data.text;
-        }
-
-        let webcamStream = null;
-
-        async function startWebcam() {
-            const container = document.getElementById('webcam-container');
-            const video = document.getElementById('webcam-video');
-            
-            try {
-                webcamStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                video.srcObject = webcamStream;
-                container.classList.remove('hidden');
-                document.getElementById('drop-placeholder').classList.add('hidden');
-                document.getElementById('img-preview').classList.add('hidden');
+                // Solicitar câmera ao usuário com boa qualidade
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { 
+                        facingMode: 'user', 
+                        width: { ideal: 1920 }, 
+                        height: { ideal: 1080 } 
+                    },
+                    audio: false
+                });
+                
+                video.srcObject = stream;
+                
+                // Mudar estado do botão de setup para "Carregando"
+                const startBtn = setupView.querySelector('button');
+                startBtn.innerHTML = '<span class="animate-spin text-xl">⏳</span> INICIANDO...';
+                startBtn.classList.add('opacity-70', 'cursor-not-allowed');
+                
+                // Dispara quando o vídeo consegue ler metadata(resolução da camera detectada)
+                video.onloadedmetadata = () => {
+                    video.play();
+                    
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    // Transita interface de setup para gravação live
+                    setupView.classList.add('hidden');
+                    canvas.classList.remove('hidden');
+                    controlsView.classList.remove('hidden');
+                    liveBadge.classList.remove('hidden');
+                    
+                    // Inicia o Paint Loop
+                    renderLoop();
+                };
             } catch (err) {
-                alert("Erro ao acessar a webcam: " + err.message);
-                console.error(err);
+                console.error("Erro ao acessar a câmera:", err);
+                alert("Não foi possível acessar a câmera. Verifique as permissões de acesso do navegador!");
             }
         }
 
-        function stopWebcam() {
-            const container = document.getElementById('webcam-container');
-            const video = document.getElementById('webcam-video');
-            
-            if (webcamStream) {
-                webcamStream.getTracks().forEach(track => track.stop());
-                video.srcObject = null;
-                webcamStream = null;
+        function renderLoop() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                
+                // A magia acontece aqui: Aplicar filtro CSS dinamicamente no Canvas
+                if (isEffectActive) {
+                    ctx.filter = 'url(#cartoon-effect) saturate(220%) contrast(150%) brightness(120%) blur(0.5px)';
+                } else {
+                    ctx.filter = 'none';
+                }
+                
+                // Pinta o frame de vídeo atual para o canvas, com o filtro engatilhado
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             }
-            container.classList.add('hidden');
-            
-            if (lastImage) {
-                document.getElementById('img-preview').classList.remove('hidden');
+            animationFrameId = requestAnimationFrame(renderLoop);
+        }
+
+        // Alterna entre modo Cartoon / Normal
+        function toggleEffect() {
+            isEffectActive = !isEffectActive;
+            if (isEffectActive) {
+                effectBtn.innerHTML = '<span class="text-xl">✨</span> Normal'; // Mostra opção oposta
             } else {
-                document.getElementById('drop-placeholder').classList.remove('hidden');
+                effectBtn.innerHTML = '<span class="text-xl">✨</span> Cartoon';
             }
         }
 
-        async function captureWebcam() {
-            const video = document.getElementById('webcam-video');
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // Tira a foto a partir do que o Canvas renderizou e salva com os filtros corretos.
+        function takeSnapshot() {
+            // Efeito de Flash na UI
+            const flash = document.createElement('div');
+            flash.className = 'fixed inset-0 bg-white z-[200] transition-opacity duration-300 pointer-events-none opacity-100';
+            document.body.appendChild(flash);
             
-            const dataURL = canvas.toDataURL('image/png');
-            lastImage = dataURL;
+            setTimeout(() => {
+                flash.classList.replace('opacity-100', 'opacity-0');
+                setTimeout(() => flash.remove(), 300);
+            }, 50);
+
+            // Exportar imagem
+            const snapshotUrl = canvas.toDataURL('image/png', 1.0);
             
-            stopWebcam();
+            const modal = document.getElementById('snapshot-modal');
+            const preview = document.getElementById('snapshot-preview');
+            const downloadBtn = document.getElementById('download-btn');
             
-            const preview = document.getElementById('img-preview');
-            preview.src = dataURL;
-            preview.classList.remove('hidden');
+            preview.src = snapshotUrl;
+            downloadBtn.href = snapshotUrl;
             
-            await runScan();
+            // Transição de abertura da interface Modal
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.add('flex');
+                modal.classList.replace('opacity-0', 'opacity-100');
+            }, 10);
         }
 
-        async function handleFile(input) {
-            if (!input.files[0]) return;
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const dataURL = e.target.result;
-                lastImage = dataURL;
-
-                // Show preview
-                const preview = document.getElementById('img-preview');
-                preview.src = dataURL;
-                preview.classList.remove('hidden');
-                document.getElementById('drop-placeholder').classList.add('hidden');
-
-                await runScan();
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-
-        async function preprocessImage(dataURL) {
-            const img = new Image();
-            img.src = dataURL;
-            await new Promise(r => img.onload = r);
-
-            const canvas = document.getElementById('processed-preview');
-            const ctx = canvas.getContext('2d');
-
-            const scale = 2.5;
-            canvas.width = img.width * scale;
-            canvas.height = img.height * scale;
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            const grays = new Uint8Array(data.length / 4);
-
-            for (let i = 0; i < data.length; i += 4) {
-                grays[i / 4] = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-            }
-
-            // ALGORITMO DE OTSU: Binarização adaptativa para fundos coloridos
-            const hist = new Array(256).fill(0);
-            for (let v of grays) hist[v]++;
-            let total = grays.length, sum = 0;
-            for (let i = 0; i < 256; i++) sum += i * hist[i];
-            let sumB = 0, wB = 0, wF = 0, maxVar = 0, threshold = 0;
-            for (let i = 0; i < 256; i++) {
-                wB += hist[i]; if (wB === 0) continue;
-                wF = total - wB; if (wF === 0) break;
-                sumB += i * hist[i];
-                let mB = sumB / wB, mF = (sum - sumB) / wF;
-                let varBetween = wB * wF * (mB - mF) * (mB - mF);
-                if (varBetween > maxVar) { maxVar = varBetween; threshold = i; }
-            }
-
-            // Aplica binarização (com margem de segurança)
-            for (let i = 0; i < data.length; i += 4) {
-                const val = (grays[i / 4] < threshold - 5) ? 0 : 255;
-                data[i] = data[i + 1] = data[i + 2] = val;
-                data[i + 3] = 255;
-            }
-
-            ctx.putImageData(imageData, 0, 0);
-            document.getElementById('processed-container').classList.remove('hidden');
-            return canvas.toDataURL('image/png');
-        }
-
-        async function runScan() {
-            if (!lastImage) { alert("Selecione uma imagem primeiro!"); return; }
-
-            document.getElementById('scan-bar').style.opacity = '1';
-            document.getElementById('hint-panel').classList.add('hidden');
-            document.getElementById('result-box').classList.add('hidden');
-            document.getElementById('analysis-box').classList.remove('hidden');
-            document.getElementById('solve-btn').classList.add('hidden');
-            document.getElementById('detected-text').value = "";
-            const status = document.getElementById('ocr-status');
-
-            // MODO GEMINI: IA de alta precisão (igual ao Monica AI)
-            if (geminiEnabled) {
-                try {
-                    status.textContent = "🤖 Gemini AI: Lendo expressão matemática...";
-                    document.getElementById('scan-bar').style.opacity = '1';
-
-                    let mathText = await tryGeminiOCR(lastImage);
-
-                    // Remove = no final se não tiver nada depois
-                    if (mathText.trim().endsWith("=")) {
-                        mathText = mathText.trim().slice(0, -1).trim();
-                    }
-
-                    lastRawRead = mathText;
-                    document.getElementById('detected-text').value = mathText;
-                    document.getElementById('scan-bar').style.opacity = '0';
-                    status.textContent = "✅ Gemini AI leu com precisão. Confirme se necessário.";
-                    document.getElementById('solve-btn').classList.remove('hidden');
-                    speakMath(mathText);
-                    return;
-                } catch (geminiErr) {
-                    console.warn("Gemini falhou, usando Tesseract:", geminiErr);
-                    status.textContent = "⚠ Gemini falhou, usando Tesseract...";
-                }
-            }
-
-            // MODO TESSERACT: Fallback local
-            try {
-                status.textContent = "🔬 Otimizando imagem para capturar x e potências...";
-                const processed = await preprocessImage(lastImage);
-                status.textContent = "👁 Analisando símbolos (Modo Linha Única)...";
-
-                const result = await Tesseract.recognize(processed, 'eng', {
-                    tessedit_char_whitelist: '0123456789+-*/()=xyz^¹²³.√!#%&_ ',
-                    tessedit_pageseg_mode: '7'
-                });
-
-                let mathStr = "";
-                const syms = (result.data.symbols || []).filter(s => s.text.trim());
-
-                if (syms.length > 0) {
-                    let avgBottom = syms.reduce((acc, s) => acc + s.bbox.y1, 0) / syms.length;
-                    let avgHeight = syms.reduce((acc, s) => acc + (s.bbox.y1 - s.bbox.y0), 0) / syms.length;
-
-                    for (let i = 0; i < syms.length; i++) {
-                        const s = syms[i];
-                        let ch = s.text;
-                        const box = s.bbox;
-                        const h = box.y1 - box.y0;
-
-                        // 2. Lógica de Potência (Superscript)
-                        // É potência se o pé do caractere (y1) estiver significativamente acima da base média
-                        const isHigh = box.y1 < avgBottom - (avgHeight * 0.35);
-
-                        if (isHigh) {
-                            // Adiciona o operador de potência apenas na transição para o alto
-                            if (i > 0 && !mathStr.endsWith("**")) {
-                                mathStr += "**";
-                            }
-                            // Correções agressivas de OCR específicas para expoentes
-                            if (["4", "z", "a", "7", "o", "q"].includes(ch.toLowerCase())) ch = "2";
-                            if (["9", "g", "8"].includes(ch.toLowerCase())) ch = "3";
-                        }
-
-                        mathStr += ch;
-                    }
-                }
-
-                // Limpeza final e heurísticas de correção baseadas em aprendizado
-                let cleaned = mathStr
-                    .replace(/\n+/g, " ")
-                    .replace(/[^0-9+\-*/()=xyz^¹²³.√!#%&_ ]/gi, "")
-                    .replace(/\s+/g, " ")
-                    // HEURÍSTICA DE x²: Focamos apenas em caracteres que Tesseract confunde com '²'
-                    // Removido '.', '-', '_' pois causavam erros em expressões como '2x-3'
-                    .replace(/([xyz])([2zZ^°º])/g, "$1**2")
-                    // Se o ² unicode foi lido
-                    .replace(/²/g, "**2")
-                    // Casos onde sobrou apenas o expoente (ex: x 2 -> x**2)
-                    .replace(/([xyz])\s+2(\s|$|=)/g, "$1**2$2")
-                    // Tratamento de Multiplicação: '2 x 3' -> '2 * 3'
-                    .replace(/(\d)\s*[xX]\s*(\d)/g, "$1 * $2")
-                    .trim();
-
-                // REGRA: Se terminar em =, ignora o =
-                if (cleaned.endsWith("=")) {
-                    cleaned = cleaned.slice(0, -1).trim();
-                }
-
-                if (!cleaned) {
-                    cleaned = result.data.text
-                        .replace(/[^0-9+\-*/()=xyz^¹²³.√ ]/gi, "")
-                        .replace(/\s+/g, " ")
-                        .trim();
-                }
-
-                lastRawRead = cleaned;
-                document.getElementById('detected-text').value = cleaned;
-                document.getElementById('scan-bar').style.opacity = '0';
-                status.textContent = "✨ IA: 'Modo de detecção de x² refinado (menos erros). Reinicie o app.py se o erro persistir.'";
-                document.getElementById('solve-btn').classList.remove('hidden');
-
-                // Autoplay opcional da leitura
-                speakMath(cleaned);
-
-            } catch (err) {
-                console.error(err);
-                status.textContent = "❌ Erro no OCR: " + err.message;
-                document.getElementById('scan-bar').style.opacity = '0';
-            }
-        }
-
-        async function saveAndSolve() {
-            const corrected = document.getElementById('detected-text').value.trim();
-            if (!corrected) { alert("Campo de texto vazio! Corrija o que a IA leu."); return; }
-
-            const btn = document.getElementById('solve-btn');
-            btn.innerHTML = '<span class="animate-pulse">🧠 PENSANDO...</span>';
-            btn.disabled = true;
-
-            const answerEl = document.getElementById('answer-val');
-            const explanEl = document.getElementById('explanation-val');
-            const resultBox = document.getElementById('result-box');
-
-            try {
-                const res = await fetch(`${HUB}/aprender`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        image_data: lastImage,
-                        ia_read: lastRawRead,
-                        user_corrected: corrected
-                    })
-                });
-
-                const data = await res.json();
-                const mathResult = data.result;
-
-                if (mathResult?.answer === "ERRO") {
-                    answerEl.textContent = "Erro de Sintaxe";
-                    answerEl.className = "text-3xl font-bold math-font text-red-500 break-all px-4";
-                } else {
-                    answerEl.textContent = mathResult?.answer ?? "?";
-                    answerEl.className = "text-5xl font-bold math-font text-cyan-400 break-all px-4";
-                }
-
-                if (mathResult?.explanation) {
-                    explanEl.textContent = mathResult.explanation;
-                    explanEl.classList.remove('hidden');
-                } else {
-                    explanEl.classList.add('hidden');
-                }
-
-                resultBox.classList.remove('hidden');
-                resultBox.classList.add('flex', 'flex-col');
-
-                // Rola para o resultado
-                resultBox.scrollIntoView({ behavior: 'smooth' });
-
-            } catch (err) {
-                // Fallback: calcula localmente (FIXED: Não troca x por *)
-                try {
-                    const localExpr = corrected
-                        .replace(/²/g, "**2").replace(/³/g, "**3")
-                        .replace(/[×]/g, "*").replace(/÷/g, "/")
-                        .replace(/=/g, "").replace(/[^0-9+\-*/\s().]/g, "");
-                    const localResult = eval(localExpr);
-                    answerEl.textContent = localResult;
-                    answerEl.className = "text-5xl font-bold math-font text-zinc-300 break-all px-4";
-                    explanEl.textContent = "⚠ Hub offline – cálculo local básico (variáveis não suportadas offline).";
-                    explanEl.classList.remove('hidden');
-                } catch {
-                    answerEl.textContent = "ERRO";
-                    answerEl.className = "text-5xl font-bold math-font text-red-500";
-                    explanEl.textContent = "Hub offline. Inicie o app.py para resolver equações complexas.";
-                    explanEl.classList.remove('hidden');
-                }
-                resultBox.classList.remove('hidden');
-            } finally {
-                btn.textContent = "💾 CONFIRMAR TEXTO E RESOLVER";
-                btn.disabled = false;
-            }
+        function closeSnapshot() {
+            const modal = document.getElementById('snapshot-modal');
+            modal.classList.replace('opacity-100', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
         }
     </script>
 </body>
