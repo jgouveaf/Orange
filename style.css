@@ -182,11 +182,6 @@ footer h2 { margin-bottom: 0.5rem; }
 footer span { color: var(--primary-orange); }
 footer p { color: var(--text-secondary); }
 
-@media (max-width: 768px) {
-    .filter-container { flex-direction: column; width: 100%; border-radius: 20px; padding: 1rem; }
-    .filter-btn { width: 100%; }
-}
-
 /* Progress Container Styles */
 .progress-container {
     margin-top: 1.5rem;
@@ -272,7 +267,7 @@ footer p { color: var(--text-secondary); }
     box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
 }
 
-/* === TABS DE NAVEGA«√O === */
+/* === TABS DE NAVEGA√á√ÉO === */
 .tabs-container {
     display: flex;
     justify-content: center;
@@ -446,9 +441,10 @@ footer p { color: var(--text-secondary); }
 }
 
 @media (max-width: 768px) {
+    .filter-container { flex-direction: column; width: 100%; border-radius: 20px; padding: 1rem; }
+    .filter-btn { width: 100%; }
     .hub-grid { grid-template-columns: 1fr; }
     .participant-row { flex-direction: column; }
     .nav-tab { width: 100%; margin-bottom: 0.5rem; }
     .tabs-container { flex-direction: column; gap: 0; }
 }
-
