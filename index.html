@@ -45,17 +45,16 @@
             margin-bottom: 1.5rem;
         }
 
+        /* O VÍDEO É O QUE FICA NA TELA. ASSIM É BEM MAIS LEVE E NÃO TRAVA! */
         #webcam-video {
             display: none;
-        }
-
-        #canvas-output {
             position: absolute;
             width: 100%;
             height: 100%;
             object-fit: cover;
             border-radius: 1.5rem;
             transform: scaleX(-1); /* Espelhar a câmera */
+            transition: filter 0.3s ease; /* Transição suave entre filtros */
         }
 
         .controls {
@@ -92,23 +91,6 @@
             transform: scale(0.95);
             box-shadow: 0 5px 10px -3px rgba(236, 72, 153, 0.5);
         }
-        
-        .btn-primary:hover {
-            filter: brightness(1.1);
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
 
         /* Ocultar barra de rolagem mas manter funcionamento */
         .hide-scroll::-webkit-scrollbar {
@@ -143,16 +125,15 @@
             transform: translateY(-4px);
             box-shadow: 0 10px 20px -5px rgba(236, 72, 153, 0.3);
         }
-
-        @keyframes pulse-ring {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            100% { transform: scale(2); opacity: 0; }
-        }
         
         .live-indicator {
             position: relative;
         }
         
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
         .live-indicator::before {
             content: '';
             position: absolute;
@@ -170,20 +151,41 @@
 
 <body class="p-4 md:p-6 pb-4">
 
-    <!-- Filtro SVG Base para posterização -->
+    <!-- FILTRO SVG BASE (Pode dar bug em Canvas, mas é excelente via CSS diretamente no Vídeo) -->
     <svg width="0" height="0" style="position: absolute; z-index: -1;">
         <defs>
-            <filter id="cartoon-effect" color-interpolation-filters="sRGB">
-                <!-- Reduz detalhes criando aspecto de pintura -->
-                <feGaussianBlur stdDeviation="3.5" result="blur" />
-                <!-- "Bloqueia" as cores simulando pintura color bloking -->
-                <feComponentTransfer in="blur" result="posterized">
+            <filter id="svg-cartoon" color-interpolation-filters="sRGB">
+                <!-- 1. Suavizar a imagem reduzindo ruídos -->
+                <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
+                
+                <!-- 2. Posterizar cores para estilo cartoon -->
+                <feComponentTransfer in="blur" result="poster">
                     <feFuncR type="discrete" tableValues="0 0.15 0.3 0.45 0.6 0.75 0.9 1" />
                     <feFuncG type="discrete" tableValues="0 0.15 0.3 0.45 0.6 0.75 0.9 1" />
                     <feFuncB type="discrete" tableValues="0 0.15 0.3 0.45 0.6 0.75 0.9 1" />
                 </feComponentTransfer>
-                <!-- Retoca sombras -->
-                <feColorMatrix type="matrix" values="1.2 0 0 0 -0.1  0 1.2 0 0 -0.1  0 0 1.2 0 -0.1  0 0 0 1 0" result="contrast" in="posterized" />
+
+                <!-- 3. Aumentar levemente a cor do póster sem distorcer completamente -->
+                <feColorMatrix type="matrix" values="1.2 0 0 0 -0.1   0 1.2 0 0 -0.1   0 0 1.2 0 -0.1   0 0 0 1 0" in="poster" result="colorEnhanced" />
+
+                <!-- 4. Criar contorno usando detecção de bordas -->
+                <feConvolveMatrix in="blur" result="edges" order="3"
+                    kernelMatrix="
+                        -1 -1 -1
+                        -1  8 -1
+                        -1 -1 -1" />
+                        
+                <!-- 5. Inverter a cor das bordas (Fundo branco e linhas pretas) -->
+                <feComponentTransfer in="edges" result="invertedEdges">
+                    <feFuncR type="linear" slope="-4" intercept="1" />
+                    <feFuncG type="linear" slope="-4" intercept="1" />
+                    <feFuncB type="linear" slope="-4" intercept="1" />
+                </feComponentTransfer>
+                
+                <feColorMatrix in="invertedEdges" type="saturate" values="0" result="bwEdges" />
+
+                <!-- 6. Multiplicar a cor vibrante com os traços escuros -->
+                <feBlend mode="multiply" in="colorEnhanced" in2="bwEdges" />
             </filter>
         </defs>
     </svg>
@@ -195,7 +197,7 @@
             </div>
             <div>
                 <h1 class="text-2xl font-black tracking-tight leading-none bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-orange-400 title-font">Cartoonify</h1>
-                <p class="text-[11px] text-zinc-400 uppercase tracking-widest mt-1 font-bold">Studio Camera</p>
+                <p class="text-[11px] text-zinc-400 uppercase tracking-widest mt-1 font-bold">Studio Express</p>
             </div>
         </div>
         <div id="live-badge" class="hidden px-4 py-2 rounded-full bg-green-500/10 text-green-400 text-xs font-bold border border-green-500/20 flex items-center gap-2 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
@@ -207,89 +209,83 @@
     <main class="flex-1 w-full max-w-6xl mx-auto flex flex-col items-center min-h-0">
         
         <div class="video-container">
-            <!-- Tela Inicial (Bem vindo/Aviso) -->
             <div id="setup-view" class="text-center absolute inset-0 flex flex-col items-center justify-center z-20">
                 <div class="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl border border-white/10 backdrop-blur-md">
                     📷
                 </div>
                 <h2 class="text-3xl font-bold mb-3 title-font">Pronto para criar?</h2>
                 <p class="text-zinc-400 mb-8 max-w-md text-sm leading-relaxed">
-                    Ligue a câmera e escolha embaixo entre os vários efeitos artísticos gerados direto pelo navegador!
+                    Clique abaixo para ligar. Dependendo do seu navegador vai pedir permissão.
                 </p>
                 <button onclick="startCamera()" class="btn btn-primary text-lg px-8 py-4">
                     <span class="text-xl">🚀</span> INICIAR CÂMERA
                 </button>
             </div>
 
-            <!-- Feed da Câmera Escondido & Saída renderizada com os Efeitos em Canvas -->
+            <!-- Feed da Câmera -->
             <video id="webcam-video" autoplay playsinline></video>
-            <canvas id="canvas-output" class="hidden"></canvas>
-
-            <!-- Botão Salvar no Canto -->
+            
             <div id="controls-view" class="controls hidden">
-                <button onclick="takeSnapshot()" class="btn btn-primary text-xl px-6 py-4 shadow-2xl">
+                <button onclick="takeSnapshot()" class="btn btn-primary text-xl px-6 py-4 shadow-2xl hover:scale-105 active:scale-95 transition-all">
                     📸 TIRAR FOTO
                 </button>
             </div>
         </div>
 
-        <!-- Barra de Efeitos (Seletor) Injetado por Javascript -->
+        <!-- Seletor -->
         <div id="filters-bar" class="hidden w-full max-w-6xl glass-panel p-3 rounded-2xl flex items-center gap-3 overflow-x-auto hide-scroll flex-shrink-0">
-            <!-- Botões gerados por JS entrarão aqui -->
         </div>
 
     </main>
 
     <!-- Tela do Resultado (Foto Tirada) -->
     <div id="snapshot-modal" class="fixed inset-0 bg-black/95 z-[100] hidden flex-col items-center justify-center p-6 backdrop-blur-xl opacity-0 transition-opacity duration-300">
-        <h3 class="text-3xl font-black mb-2 text-white text-center title-font bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-orange-400">Sua Foto de Estúdio!</h3>
-        <p class="text-zinc-400 mb-8 text-sm">Prontinha para ser salva e compartilhada no WhatsApp/Insta.</p>
+        <h3 class="text-3xl font-black mb-2 text-white text-center title-font bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-orange-400">Excelente Captura!</h3>
+        <p class="text-zinc-400 mb-8 text-sm text-center max-w-xs">Aviso importante: Ao baixar, o navegador pode simplificar alguns efeitos dependendo do que ele suportar nativamente.</p>
         
-        <img id="snapshot-preview" class="max-h-[60vh] rounded-2xl shadow-[0_0_40px_rgba(236,72,153,0.3)] border border-white/20 mb-8 transform -scale-x-100" />
+        <img id="snapshot-preview" class="max-w-full max-h-[50vh] rounded-2xl shadow-[0_0_40px_rgba(236,72,153,0.3)] border border-white/20 mb-8 transform -scale-x-100 object-contain" />
         
         <div class="flex gap-4 w-full max-w-sm">
-            <button onclick="closeSnapshot()" class="btn btn-secondary flex-1 justify-center">VOLTAR</button>
-            <a id="download-btn" class="btn btn-primary flex-1 justify-center text-center" download="cartoon_photo.png">
+            <button onclick="closeSnapshot()" class="btn btn-secondary flex-1 justify-center py-4 bg-zinc-800 text-white font-bold rounded-full">VOLTAR</button>
+            <a id="download-btn" class="btn btn-primary flex-1 justify-center text-center py-4 text-white font-bold rounded-full" download="cartoon_photo.png">
                 BAIXAR ⬇️
             </a>
         </div>
     </div>
 
+    <!-- O canvas é usado SECRETO só pra gerar a imagem de download -->
+    <canvas id="hidden-canvas" style="display:none;"></canvas>
+
     <script>
         const video = document.getElementById('webcam-video');
-        const canvas = document.getElementById('canvas-output');
-        const ctx = canvas.getContext('2d', { willReadFrequently: false });
         const setupView = document.getElementById('setup-view');
         const controlsView = document.getElementById('controls-view');
         const filtersBar = document.getElementById('filters-bar');
         const liveBadge = document.getElementById('live-badge');
         
-        let stream;
-        let animationFrameId;
-
-        // O SEGREDO DOS EFEITOS: CSS Canvas Filters Turbinados pelo nosso Filtro SVG!
+        // REESCREVI OS EFEITOS PARA MAXIMA COMPATIBILIDADE (Os CSS puros funcionam 100% de ctz)
         const effects = [
             { id: 'normal',    name: 'Normal',    icon: '👤', css: 'none' },
-            { id: 'cartoon',   name: 'Cartoon',   icon: '🎨', css: 'url(#cartoon-effect) saturate(220%) contrast(150%) brightness(120%) blur(0.5px)' },
-            { id: 'pb',        name: 'Mangá P&B', icon: '📓', css: 'url(#cartoon-effect) grayscale(100%) contrast(200%) brightness(120%)' },
+            // Cartoon SVG modificado para um visual autêntico e sem excesso de distorção
+            { id: 'cartoon',   name: 'Cartoon+',   icon: '🎨', css: 'url(#svg-cartoon)' },
+            // Os efeitos debaixo dependem só de CSS e funcionam até em geladeira smart
+            { id: 'neon',      name: 'Radioativo',icon: '☢️', css: 'hue-rotate(250deg) saturate(500%) contrast(180%) invert(10%)' },
+            { id: 'popart',    name: 'Pop Art',   icon: '💥', css: 'saturate(400%) contrast(200%) hue-rotate(45deg)' },
+            { id: 'pb',        name: 'Noir PB',   icon: '📓', css: 'grayscale(100%) contrast(200%) brightness(120%)' },
             { id: 'matrix',    name: 'Matrix G-1',icon: '💻', css: 'sepia(100%) hue-rotate(90deg) saturate(300%) contrast(150%) brightness(80%)' },
-            { id: 'cyberpunk', name: 'Cyberpunk', icon: '🌃', css: 'url(#cartoon-effect) hue-rotate(140deg) saturate(300%) contrast(180%) brightness(110%)' },
-            { id: 'popart',    name: 'Pop Art',   icon: '💥', css: 'url(#cartoon-effect) saturate(400%) contrast(200%) hue-rotate(45deg)' },
-            { id: 'vintage',   name: 'Vintage HQ',icon: '📽️', css: 'sepia(80%) contrast(150%) saturate(140%) brightness(90%) blur(0.5px)' },
-            { id: 'neon',      name: 'Radioativo',icon: '☢️', css: 'url(#cartoon-effect) hue-rotate(250deg) saturate(500%) contrast(180%) invert(10%)' },
-            { id: 'warm',      name: 'Sépia Red', icon: '🌇', css: 'sepia(50%) saturate(200%) contrast(140%) hue-rotate(-20deg) brightness(1.1)' }
+            { id: 'cyberpunk', name: 'Cyberpunk', icon: '🌃', css: 'hue-rotate(140deg) saturate(300%) contrast(180%) brightness(110%)' },
+            { id: 'vintage',   name: 'Vintage HQ',icon: '📽️', css: 'sepia(80%) contrast(150%) saturate(140%) brightness(90%)' }
         ];
 
-        let activeEffectIdx = 1; // Padrão: Cartoon
+        let activeEffectIdx = 1; // Default Cartoon+
+        let stream;
 
-        // Constrói o Menu de Rolagem de Filtros Injetando o HTML Dinâmico
         function renderFilterUI() {
             filtersBar.innerHTML = '';
             effects.forEach((eff, idx) => {
                 const btn = document.createElement('button');
                 btn.className = `filter-option ${idx === activeEffectIdx ? 'active' : ''}`;
                 btn.onclick = () => selectEffect(idx);
-                // Conteúdo do botão
                 btn.innerHTML = `
                     <span class="text-3xl drop-shadow-md">${eff.icon}</span>
                     <span class="text-xs font-extra-bold uppercase tracking-wide whitespace-nowrap opacity-90">${eff.name}</span>
@@ -298,15 +294,16 @@
             });
         }
 
-        // Função chamada pra trocar de filtro
         function selectEffect(index) {
             activeEffectIdx = index;
-            // Atualiza Destaque Visual do Menu
+            // APLICAÇÃO SEGURA VIA CSS NA TAG <VIDEO> DIRETAMENTE (0% chance de travar CPU/GPU)
+            video.style.filter = effects[activeEffectIdx].css;
+            
             const btns = filtersBar.querySelectorAll('.filter-option');
             btns.forEach((btn, i) => {
                 if (i === index) {
                     btn.classList.add('active');
-                    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); // Traz pro foco no celular
+                    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 } else {
                     btn.classList.remove('active');
                 }
@@ -315,57 +312,43 @@
 
         async function startCamera() {
             try {
-                // Abre requisição de câmera com preferência FHD se dispoível
+                const startBtn = setupView.querySelector('button');
+                startBtn.innerHTML = '<span class="animate-spin text-xl">⏳</span> CARREGANDO...';
+                startBtn.classList.add('opacity-70', 'cursor-not-allowed');
+
                 stream = await navigator.mediaDevices.getUserMedia({
-                    video: { 
-                        facingMode: 'user', 
-                        width: { ideal: 1920 }, 
-                        height: { ideal: 1080 } 
-                    },
+                    video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
                     audio: false
                 });
                 
                 video.srcObject = stream;
                 
-                const startBtn = setupView.querySelector('button');
-                startBtn.innerHTML = '<span class="animate-spin text-xl">⏳</span> CARREGANDO...';
-                startBtn.classList.add('opacity-70', 'cursor-not-allowed');
-                
                 video.onloadedmetadata = () => {
                     video.play();
                     
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    
-                    // Mostra as abas dos filmes/filtros e a câmera
                     setupView.classList.add('hidden');
-                    canvas.classList.remove('hidden');
+                    
+                    // Mostra o player <video> original, e não um canvas enganando
+                    video.style.display = 'block';
+                    
                     controlsView.classList.remove('hidden');
                     liveBadge.classList.remove('hidden');
                     filtersBar.classList.remove('hidden');
                     
                     renderFilterUI();
-                    renderLoop();
+                    
+                    // Inicia com o filtro na posição padrão
+                    video.style.filter = effects[activeEffectIdx].css;
                 };
             } catch (err) {
-                console.error("Erro:", err);
-                alert("Sem acesso a câmera. Verifique as permissões de vídeo do seu navegador para este site!");
+                console.error("Erro na Câmera:", err);
+                const startBtn = setupView.querySelector('button');
+                startBtn.innerHTML = '🚨 ERRO DE PERMISSÃO';
+                alert("Falha: " + err.message + "\n\nO Navegador pode estar bloqueando sua câmera no localhost. Tente no Google Chrome e permita o pop-up!");
             }
         }
 
-        // Gameloop: Desenha repetidamente os pixels da câmera no Canvas 2D + Mágica!
-        function renderLoop() {
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                // O contexto usa o CSS do nosso Effect List (sendo URL p/ SVG ou Filters nativos)
-                ctx.filter = effects[activeEffectIdx].css;
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            }
-            animationFrameId = requestAnimationFrame(renderLoop);
-        }
-
-        // Click no botão "Tirar Foto"
         function takeSnapshot() {
-            // Cria um painel branco e depois apaga pra simular "Flash"
             const flash = document.createElement('div');
             flash.className = 'fixed inset-0 bg-white z-[200] transition-opacity duration-300 pointer-events-none opacity-100';
             document.body.appendChild(flash);
@@ -375,7 +358,22 @@
                 setTimeout(() => flash.remove(), 300);
             }, 50);
 
-            // Exporta EXCELENTE QUALIDADE com Filtros Pós Processados!
+            // Geração da foto via canvas secundário
+            const canvas = document.getElementById('hidden-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth || 1280;
+            canvas.height = video.videoHeight || 720;
+            
+            // Tentamos aplicar o SVG via Context2D (Se o navegador rejeitar url(#...), ele ainda aplica os pb, saturations, etc)
+            ctx.filter = effects[activeEffectIdx].css; 
+            
+            // Espelha pra salvar certo
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
             const snapshotUrl = canvas.toDataURL('image/png', 1.0);
             
             const modal = document.getElementById('snapshot-modal');
@@ -384,7 +382,6 @@
             
             preview.src = snapshotUrl;
             
-            // Renomeia a foto na hora do Donwload de Acordo com o filtro Ex: foto_cyberpunk.png
             const filterName = effects[activeEffectIdx].name.toLowerCase().replace(/\s+/g, "_");
             downloadBtn.download = `foto_${filterName}.png`;
             downloadBtn.href = snapshotUrl;
