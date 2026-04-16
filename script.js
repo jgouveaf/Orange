@@ -477,90 +477,113 @@ filterBtns.forEach(btn => {
 });
 
 // --- CLOUD SYNC LOGIC ---
-const cloudUploadBtn = document.getElementById('cloud-upload-btn');
-const cloudDownloadBtn = document.getElementById('cloud-download-btn');
-const syncCodeInput = document.getElementById('sync-code-input');
-const syncCodeDisplay = document.getElementById('sync-code-display');
-const syncCodeValue = document.getElementById('sync-code-value');
-const cloudStatus = document.getElementById('cloud-status');
+function initCloudSync() {
+    const cloudUploadBtn = document.getElementById('cloud-upload-btn');
+    const cloudDownloadBtn = document.getElementById('cloud-download-btn');
+    const syncCodeInput = document.getElementById('sync-code-input');
+    const syncCodeDisplay = document.getElementById('sync-code-display');
+    const syncCodeValue = document.getElementById('sync-code-value');
+    const cloudStatus = document.getElementById('cloud-status');
 
-async function uploadToCloud() {
-    cloudStatus.textContent = 'Enviando para a nuvem...';
-    cloudUploadBtn.disabled = true;
+    if(!cloudUploadBtn) return;
 
-    // Coletar TUDO que está no localStorage relacionado ao projeto
-    const projectData = {};
-    for(let i=0; i<localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if(key.startsWith('progress_') || 
-           key.startsWith('custom_') || 
-           key.startsWith('hub-') || 
-           key === 'hub-participants' || 
-           key === 'hub-ideas') {
-            projectData[key] = localStorage.getItem(key);
+    async function uploadToCloud() {
+        cloudStatus.textContent = '⏱️ Gerando código...';
+        cloudStatus.style.color = 'var(--secondary-color)';
+        
+        const projectData = {};
+        for(let i=0; i<localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if(key.startsWith('progress_') || key.startsWith('custom_') || key.startsWith('hub-')) {
+                projectData[key] = localStorage.getItem(key);
+            }
         }
-    }
 
-    try {
-        const response = await fetch('https://jsonblob.com/api/jsonBlob', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(projectData)
-        });
-
-        if(response.ok) {
-            const location = response.headers.get('Location');
-            const id = location.split('/').pop();
-            
-            syncCodeValue.textContent = id;
-            syncCodeDisplay.style.display = 'flex';
-            cloudStatus.textContent = '✅ Sucesso! Código gerado.';
-        } else {
-            throw new Error('Erro ao salvar');
-        }
-    } catch (error) {
-        cloudStatus.textContent = '❌ Erro ao conectar com o servidor.';
-        console.error(error);
-    } finally {
-        cloudUploadBtn.disabled = false;
-    }
-}
-
-async function downloadFromCloud() {
-    const id = syncCodeInput.value.trim();
-    if(!id) {
-        cloudStatus.textContent = '⚠️ Insira um código de sincronia.';
-        return;
-    }
-
-    cloudStatus.textContent = 'Baixando dados...';
-    cloudDownloadBtn.disabled = true;
-
-    try {
-        const response = await fetch(`https://jsonblob.com/api/jsonBlob/${id}`);
-        if(response.ok) {
-            const data = await response.json();
-            
-            // Salvar tudo no localStorage
-            Object.keys(data).forEach(key => {
-                localStorage.setItem(key, data[key]);
+        try {
+            const response = await fetch('https://jsonblob.com/api/jsonBlob', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(projectData)
             });
 
-            cloudStatus.textContent = '✅ Dados carregados! Recarregando página...';
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            cloudStatus.textContent = '❌ Código inválido ou expirado.';
+            if(response.ok) {
+                const location = response.headers.get('Location');
+                const id = location.split('/').pop();
+                syncCodeValue.textContent = id;
+                syncCodeDisplay.style.display = 'flex';
+                cloudStatus.textContent = '✅ Sucesso! Código gerado.';
+            } else {
+                cloudStatus.textContent = '❌ Erro no servidor. Tente novamente.';
+            }
+        } catch (error) {
+            cloudStatus.textContent = '❌ Erro de conexão (CORS/Internet).';
+            console.error(error);
         }
-    } catch (error) {
-        cloudStatus.textContent = '❌ Erro ao baixar dados.';
-        console.error(error);
-    } finally {
-        cloudDownloadBtn.disabled = false;
+    }
+
+    async function downloadFromCloud() {
+        const id = syncCodeInput.value.trim();
+        if(!id) return cloudStatus.textContent = '⚠️ Digite o código.';
+
+        cloudStatus.textContent = '⏱️ Baixando dados...';
+        try {
+            const response = await fetch(`https://jsonblob.com/api/jsonBlob/${id}`);
+            if(response.ok) {
+                const data = await response.json();
+                Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
+                cloudStatus.textContent = '✅ Dados carregados! Recarregando...';
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                cloudStatus.textContent = '❌ Código inválido.';
+            }
+        } catch (error) {
+            cloudStatus.textContent = '❌ Erro ao baixar dados.';
+        }
+    }
+
+    cloudUploadBtn.onclick = uploadToCloud;
+    cloudDownloadBtn.onclick = downloadFromCloud;
+
+    // --- FALLBACK: BACKUP POR ARQUIVO ---
+    const exportFileBtn = document.getElementById('export-file-btn');
+    const importFileInput = document.getElementById('import-file-input');
+
+    if (exportFileBtn) {
+        exportFileBtn.onclick = () => {
+            const data = getProjectData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_orange_${new Date().toLocaleDateString().replace(/\//g,'-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            cloudStatus.textContent = '✅ Arquivo de backup baixado!';
+        };
+    }
+
+    if (importFileInput) {
+        importFileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
+                    cloudStatus.textContent = '✅ Dados importados com sucesso!';
+                    setTimeout(() => location.reload(), 1000);
+                } catch (err) {
+                    cloudStatus.textContent = '❌ Arquivo de backup inválido.';
+                }
+            };
+            reader.readAsText(file);
+        };
     }
 }
-
-cloudUploadBtn.addEventListener('click', uploadToCloud);
-cloudDownloadBtn.addEventListener('click', downloadFromCloud);
 
 // Animação super rápida no scroll
 const observer = new IntersectionObserver((entries) => {
@@ -770,4 +793,9 @@ addPartBtn.addEventListener('click', () => createParticipantRow());
 addIdeaBtn.addEventListener('click', () => createIdeaRow());
 
 // Inicia dados ao abrir
-loadHubData();
+document.addEventListener('DOMContentLoaded', () => {
+    loadHubData();
+    initCloudSync();
+    applyStepCustomizations();
+    renderRoadmap('all');
+});

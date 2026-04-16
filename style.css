@@ -574,6 +574,15 @@ footer p { color: var(--text-secondary); }
     to { opacity: 1; transform: translateY(0); }
 }
 
+.sync-method-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--secondary-color);
+    opacity: 0.8;
+    margin-bottom: -0.5rem;
+}
+
 @media (max-width: 768px) {
     .filter-container { flex-direction: column; width: 100%; border-radius: 20px; padding: 1rem; }
     .filter-btn { width: 100%; }
