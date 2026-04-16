@@ -500,23 +500,27 @@ function initCloudSync() {
         }
 
         try {
-            const response = await fetch('https://jsonblob.com/api/jsonBlob', {
+            // Trocando para o JSONBin que funciona melhor com GitHub Pages
+            const response = await fetch('https://api.jsonbin.io/v3/b', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Bin-Private': 'false' 
+                },
                 body: JSON.stringify(projectData)
             });
 
             if(response.ok) {
-                const location = response.headers.get('Location');
-                const id = location.split('/').pop();
+                const result = await response.json();
+                const id = result.metadata.id; // JSONBin retorna o ID no corpo da resposta
                 syncCodeValue.textContent = id;
                 syncCodeDisplay.style.display = 'flex';
                 cloudStatus.textContent = '✅ Sucesso! Código gerado.';
             } else {
-                cloudStatus.textContent = '❌ Erro no servidor. Tente novamente.';
+                cloudStatus.textContent = '❌ Erro no servidor. Use a Opção B (Arquivo).';
             }
         } catch (error) {
-            cloudStatus.textContent = '❌ Erro de conexão (CORS/Internet).';
+            cloudStatus.textContent = '❌ Erro de conexão. Use a Opção B.';
             console.error(error);
         }
     }
@@ -525,19 +529,21 @@ function initCloudSync() {
         const id = syncCodeInput.value.trim();
         if(!id) return cloudStatus.textContent = '⚠️ Digite o código.';
 
-        cloudStatus.textContent = '⏱️ Baixando dados...';
+        cloudStatus.textContent = '⏱️ Buscando dados...';
         try {
-            const response = await fetch(`https://jsonblob.com/api/jsonBlob/${id}`);
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`, {
+                headers: { 'X-Bin-Meta': 'false' }
+            });
             if(response.ok) {
                 const data = await response.json();
                 Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
-                cloudStatus.textContent = '✅ Dados carregados! Recarregando...';
+                cloudStatus.textContent = '✅ Sincronizado! Recarregando...';
                 setTimeout(() => location.reload(), 1000);
             } else {
-                cloudStatus.textContent = '❌ Código inválido.';
+                cloudStatus.textContent = '❌ Código inválido ou expirado.';
             }
         } catch (error) {
-            cloudStatus.textContent = '❌ Erro ao baixar dados.';
+            cloudStatus.textContent = '❌ Erro ao baixar ou bloqueio de rede.';
         }
     }
 
