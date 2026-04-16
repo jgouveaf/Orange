@@ -494,7 +494,6 @@ function initCloudSync() {
         const projectData = {};
         for(let i=0; i<localStorage.length; i++) {
             const key = localStorage.key(i);
-            // Captura progressos, customizações e TUDO que começa com hub (nomes, ideias, links, etc)
             if(key.startsWith('progress_') || key.startsWith('custom_') || key.startsWith('hub-')) {
                 projectData[key] = localStorage.getItem(key);
             }
@@ -506,26 +505,27 @@ function initCloudSync() {
         }
 
         try {
-            const response = await fetch('https://api.jsonbin.io/v3/b', {
+            // Usando servidor aberto feito para protótipos (CORS Friendly)
+            const response = await fetch('https://api.restful-api.dev/objects', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'X-Bin-Private': 'false' 
-                },
-                body: JSON.stringify(projectData)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: "Projeto Orange Data",
+                    data: projectData
+                })
             });
 
             if(response.ok) {
                 const result = await response.json();
-                const id = result.metadata.id; 
+                const id = result.id; 
                 syncCodeValue.textContent = id;
                 syncCodeDisplay.style.display = 'flex';
                 cloudStatus.textContent = '✅ Sucesso! Código gerado.';
             } else {
-                cloudStatus.textContent = '❌ Erro no servidor. Use a Opção B.';
+                cloudStatus.textContent = '❌ Servidor ocupado. Use a Opção B.';
             }
         } catch (error) {
-            cloudStatus.textContent = '❌ Erro de conexão. Use a Opção B.';
+            cloudStatus.textContent = '❌ Rede bloqueada. Use a Opção B.';
             console.error(error);
         }
     }
@@ -536,16 +536,15 @@ function initCloudSync() {
 
         cloudStatus.textContent = '⏱️ Buscando dados...';
         try {
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`, {
-                headers: { 'X-Bin-Meta': 'false' }
-            });
+            const response = await fetch(`https://api.restful-api.dev/objects/${id}`);
             if(response.ok) {
-                const data = await response.json();
+                const result = await response.json();
+                const data = result.data;
                 Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
                 cloudStatus.textContent = '✅ Sincronizado! Recarregando...';
                 setTimeout(() => location.reload(), 1000);
             } else {
-                cloudStatus.textContent = '❌ Código inválido ou expirado.';
+                cloudStatus.textContent = '❌ Código não encontrado.';
             }
         } catch (error) {
             cloudStatus.textContent = '❌ Erro ao baixar ou bloqueio de rede.';
