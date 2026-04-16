@@ -141,10 +141,10 @@ const phases = [
             {
                 id: 15,
                 title: "Efeitos Especiais (VFX)",
-                team: "PAV e Código (TI)",
+                team: "PAV e Código (Info)",
                 type: "all",
                 color: "var(--all-color)",
-                desc: "O pessoal de PAV e TI cria as partículas: fumaça saindo do pé, explosões, faíscas ou brilhos de magia. Esses efeitos não têm física, servem só pra deixar as ações mais 'impactantes' e bonitas visualmente. É o 'tempero' final que faz as lutas e ações parecerem poderosas.",
+                desc: "O pessoal de PAV e Info cria as partículas: fumaça saindo do pé, explosões, faíscas ou brilhos de magia. Esses efeitos não têm física, servem só pra deixar as ações mais 'impactantes' e bonitas visualmente. É o 'tempero' final que faz as lutas e ações parecerem poderosas.",
                 reason: "Sem efeitos, as ações do jogo parecem 'secas', tirando a empolgação de realizar ataques ou ganhar prêmios."
             }
         ]
@@ -155,22 +155,24 @@ const phases = [
             {
                 id: 16,
                 title: "Script de História",
-                team: "Design e Código (TI)",
+                team: "Design e Código (Info)",
                 type: "all",
                 color: "var(--all-color)",
-                desc: "O PAV e o TI criam momentos onde o jogo para um pouco pra mostrar um diálogo ou algo quebrando no cenário. São pequenos textos ou cenas que explicam por que o personagem está ali e qual é a missão dele. Isso dá um motivo pro jogador querer chegar até o final da fase.",
+                desc: "O PAV e o Info criam momentos onde o jogo para um pouco pra mostrar um diálogo ou algo quebrando no cenário. São pequenos textos ou cenas que explicam por que o personagem está ali e qual é a missão dele. Isso dá um motivo pro jogador querer chegar até o final da fase.",
                 reason: "A história faz o jogador se importar com o personagem e querer ver o que acontece depois."
             },
             {
                 id: 17,
                 title: "Áudio Dinâmico",
-                team: "PAV e Código (TI)",
+                team: "PAV e Código (Info)",
                 type: "all",
                 color: "var(--all-color)",
-                desc: "O PAV faz a música mudar sozinha: se o bicho pegar, a música fica rápida; se a área estiver limpa, ela volta a ser calma. O TI programa essa transição pra ser suave, sem cortes que estraguem o clima do momento. É um nível a mais de qualidade que mostra que o grupo é dedicado.",
+                desc: "O PAV faz a música mudar sozinha: se o bicho pegar, a música fica rápida; se a área estiver limpa, ela volta a ser calma. O Info programa essa transição pra ser suave, sem cortes que estraguem o clima do momento. É um nível a mais de qualidade que mostra que o grupo é dedicado.",
                 reason: "A música reativa manipula a adrenalina do jogador na hora certa do combate."
             },
             {
+                id: 18,
+                title: "IA de Combate em Grupo",
                 team: "Código (IA/Info)",
                 type: "info",
                 color: "var(--info-color)",
@@ -183,7 +185,7 @@ const phases = [
                 team: "Mecânica (Info)",
                 type: "info",
                 color: "var(--info-color)",
-                desc: "O TI cria a lógica de coletar itens que aumentam a força ou dão novos poderes pro personagem conforme ele joga. Eles fazem as contas de quanto o jogador precisa evoluir pra conseguir passar de um chefe difícil. A Publicidade confere se esses nomes de poderes são legais e fáceis de entender.",
+                desc: "O Info cria a lógica de coletar itens que aumentam a força ou dão novos poderes pro personagem conforme ele joga. Eles fazem as contas de quanto o jogador precisa evoluir pra conseguir passar de um chefe difícil. A Publicidade confere se esses nomes de poderes são legais e fáceis de entender.",
                 reason: "Ganhar coisas novas e ficar mais forte é o que vicia o jogador e faz ele querer continuar."
             },
             {
