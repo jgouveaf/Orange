@@ -14,10 +14,10 @@ const phases = [
             {
                 id: 2,
                 title: "Análise de Viabilidade",
-                team: "Info (IA/Cód)",
+                team: "IA/Info",
                 type: "info",
                 color: "var(--info-color)",
-                desc: "O pessoal de Info e IA senta pra decidir se o que o PAV quer realizar (tipo um gráfico pesadão) roda de verdade na engine escolhida. Eles testam se os scripts de IA não vão travar o jogo ou deixar tudo lento demais no computador da galera. É a hora de ver se a ideia de vocês é possível de fazer ou se é viagem demais.",
+                desc: "O pessoal de IA/Info senta pra decidir se o que o PAV quer realizar (tipo um gráfico pesadão) roda de verdade na engine escolhida. Eles testam se os scripts não vão travar o jogo ou deixar tudo lento demais no computador da galera. É a hora de ver se a ideia de vocês é possível de fazer ou se é viagem demais.",
                 reason: "Evita que vocês percam semanas fazendo algo que o computador não aguenta rodar depois."
             },
             {
@@ -26,7 +26,7 @@ const phases = [
                 team: "Arte",
                 type: "arte",
                 color: "var(--arte-color)",
-                desc: "O pessoal de PAV monta um mural com fotos, cores e desenhos que mostram como o jogo vai ser: se é sombrio, colorido ou pixel art. Eles definem as regras visuais pra que o jogo tenha uma cara única e não pareça um monte de desenhos aleatórios misturados. Isso ajuda o Info a saber como configurar as luzes e cores do jogo no código.",
+                desc: "O pessoal de PAV monta um mural com fotos, cores e desenhos que mostram como o jogo vai ser: se é sombrio, colorido ou pixel art. Eles definem as regras visuais pra que o jogo tenha uma cara única e não pareça um monte de desenhos aleatórios misturados. Isso ajuda o time de IA/Info a saber como configurar as luzes e cores do jogo no código.",
                 reason: "Garante que o jogo seja bonito e que todas as fases pareçam do mesmo universo."
             },
             {
@@ -44,7 +44,7 @@ const phases = [
                 team: "Código (Info)",
                 type: "info",
                 color: "var(--info-color)",
-                desc: "O Info cria o lugar (tipo um GitHub) onde todo mundo vai subir os arquivos, separando código, som e desenho. Eles criam regras pra ninguém apagar o arquivo do outro sem querer ou mandar um arquivo com nome estranho tipo 'final_v2_agora_vai'. É a parte da organização que salva a vida de todo mundo no final.",
+                desc: "O time de IA/Info cria o lugar (tipo um GitHub) onde todo mundo vai subir os arquivos, separando código, som e desenho. Eles criam regras pra ninguém apagar o arquivo do outro sem querer ou mandar um arquivo com nome estranho tipo 'final_v2_agora_vai'. É a parte da organização que salva a vida de todo mundo no final.",
                 reason: "Sem isso, vira uma confusão de arquivos e vocês perdem horas procurando onde tá a última versão do jogo."
             }
         ]
@@ -58,25 +58,25 @@ const phases = [
                 team: "Mecânica (Info)",
                 type: "info",
                 color: "var(--info-color)",
-                desc: "O Info cria as fases usando só quadrados e círculos cinzas pra ver se os saltos e o caminho estão legais. O pessoal de PAV fica de olho pra ver o tamanho que os desenhos dos personagens precisam ter pra caber nesses espaços. É a hora de testar se o jogo é divertido mesmo antes de ele estar bonito.",
+                desc: "O IA/Info cria as fases usando só quadrados e círculos cinzas pra ver se os saltos e o caminho estão legais. O pessoal de PAV fica de olho pra ver o tamanho que os desenhos dos personagens precisam ter pra caber nesses espaços. É a hora de testar se o jogo é divertido mesmo antes de ele estar bonito.",
                 reason: "É mais fácil mudar um quadrado de lugar do que ter que refazer um desenho inteiro porque a fase ficou curta."
             },
             {
                 id: 7,
                 title: "Programação de Movimento",
-                team: "Código (Info)",
+                team: "IA/Info",
                 type: "info",
                 color: "var(--info-color)",
-                desc: "Aqui o Info foca em fazer o personagem andar, pular e interagir com as coisas de um jeito que não seja travado. Eles ajustam a velocidade e a gravidade pra que o jogador sinta que tem o controle total da situação. Enquanto isso, o PAV já começa a rascunhar as primeiras animações baseadas nessas velocidades.",
+                desc: "Aqui o time de IA/Info foca em fazer o personagem andar, pular e interagir com as coisas de um jeito que não seja travado. Eles ajustam a velocidade e a gravidade pra que o jogador sinta que tem o controle total da situação. Enquanto isso, o PAV já começa a rascunhar as primeiras animações baseadas nessas velocidades.",
                 reason: "Se o controle do personagem for ruim, o jogador desiste nos primeiros 10 segundos, não importa o gráfico."
             },
             {
                 id: 8,
                 title: "Lógica de IA Inimiga",
-                team: "Código (IA/Info)",
+                team: "IA/Info",
                 type: "info",
                 color: "var(--info-color)",
-                desc: "O pessoal de IA programa a lógica simples pros vilões: eles precisam saber quando o jogador chega perto pra começar a perseguir. Eles criam as 'regras de decisão', tipo: 'se o jogador pular, atire' ou 'se ele chegar perto, bata'. É o que faz o jogo deixar de ser um deserto e começar a ter perigo de verdade.",
+                desc: "O pessoal de IA/Info programa a lógica simples pros vilões: eles precisam saber quando o jogador chega perto pra começar a perseguir. Criam as 'regras de decisão', tipo: 'se o jogador pular, atire' ou 'se ele chegar perto, bata'. É o que faz o jogo deixar de ser um deserto e começar a ter perigo de verdade.",
                 reason: "Inimigos parados ou burros deixam o jogo sem graça e sem nenhum desafio pro jogador."
             },
             {
@@ -85,7 +85,7 @@ const phases = [
                 team: "PAV",
                 type: "pav",
                 color: "var(--pav-color)",
-                desc: "O PAV grava ou procura sons curtos pra cada ação: barulho de tiro, de moeda caindo ou do personagem pulando. O Info coloca esses sounds no código pra que eles toquem exatamente na hora que a ação acontece na tela. Isso dá uma sensação de que o jogo tá 'vivo' e respondendo ao jogador.",
+                desc: "O PAV grava ou procura sons curtos pra cada ação: barulho de tiro, de moeda caindo ou do personagem pulando. O IA/Info coloca esses sounds no código pra que eles toquem exatamente na hora que a ação acontece na tela. Isso dá uma sensação de que o jogo tá 'vivo' e respondendo ao jogador.",
                 reason: "O som ajuda o jogador a entender o que aconteceu sem ele precisar ler nada na tela."
             },
             {
@@ -94,7 +94,7 @@ const phases = [
                 team: "Design (Arte)",
                 type: "arte",
                 color: "var(--arte-color)",
-                desc: "A Publicidade e o PAV desenham a barra de vida, o inventário e o menu inicial pra ficarem fáceis de usar. O Info programa pra que, quando o personagem tome dano, a barrinha de vida diminua de verdade na tela. É a camada que explica ao usuário o que está acontecendo com a saúde e os itens dele.",
+                desc: "A Publicidade e o PAV desenham a barra de vida, o inventário e o menu inicial pra ficarem fáceis de usar. O IA/Info programa pra que, quando o personagem tome dano, a barrinha de vida diminua de verdade na tela. É a camada que explica ao usuário o que está acontecendo com a saúde e os itens dele.",
                 reason: "Se o jogador não souber quanta vida tem ou onde clicar pra começar, ele fica frustrado e fecha o jogo."
             }
         ]
@@ -108,16 +108,16 @@ const phases = [
                 team: "Arte",
                 type: "arte",
                 color: "var(--arte-color)",
-                desc: "O PAV joga fora os blocos cinzas e coloca os desenhos oficiais, cenários detalhados e personagens coloridos. Eles fazem as texturas e os detalhes que dão personalidade pro jogo, seguindo o estilo definido na Etapa 3. O Info ajuda a importar tudo pra dentro da engine sem deixar o jogo pesado demais.",
+                desc: "O PAV joga fora os blocos cinzas e coloca os desenhos oficiais, cenários detalhados e personagens coloridos. Eles fazem as texturas e os detalhes que dão personalidade pro jogo. O time de IA/Info ajuda a importar tudo pra dentro da engine sem deixar o jogo pesado demais.",
                 reason: "É o visual que atrai o jogador e faz ele querer explorar o mundo que vocês criaram."
             },
             {
                 id: 12,
                 title: "Navegação de IA (Pathfinding)",
-                team: "Código (IA)",
+                team: "IA/Info",
                 type: "info",
                 color: "var(--info-color)",
-                desc: "O time de IA programa como os inimigos desviam de buracos e paredes pra chegar até o jogador sem ficar travados. Eles usam códigos pra IA entender qual é o caminho mais curto e inteligente dentro do mapa. Isso evita que os vilões fiquem andando contra a parede que nem baratas tontas.",
+                desc: "O time de IA/Info programa como os inimigos desviam de buracos e paredes pra chegar até o jogador sem ficar travados. Usam códigos inteligentes pra IA entender qual é o caminho mais curto dentro do mapa. Isso evita que os vilões fiquem andando contra a parede que nem baratas tontas.",
                 reason: "Uma IA que sabe navegar deixa o jogo muito mais profissional e difícil de vencer."
             },
             {
@@ -126,7 +126,7 @@ const phases = [
                 team: "Animação (Arte)",
                 type: "arte",
                 color: "var(--arte-color)",
-                desc: "O PAV faz os frames do personagem correndo, batendo e caindo pra que tudo pareça fluido e natural. O Info liga esses desenhos ao código pra que, quando você aperta o botão, a animação certa comece na hora. É aqui que o personagem ganha vida e parece que ele realmente está se movendo.",
+                desc: "O PAV faz os frames do personagem correndo, batendo e caindo pra que tudo pareça fluido e natural. O time de IA/Info liga esses desenhos ao código pra que, quando você aperta o botão, a animação certa comece na hora. É aqui que o personagem ganha vida e parece que ele realmente está se movendo.",
                 reason: "Animações bem feitas fazem o jogo parecer profissional e não um projeto travado."
             },
             {
@@ -135,16 +135,16 @@ const phases = [
                 team: "PAV",
                 type: "pav",
                 color: "var(--pav-color)",
-                desc: "O PAV compõe ou escolhe músicas que combinam com o clima das fases e cria sons de fundo, como vento ou máquinas. O TI faz com que o som mude de volume dependendo de onde o jogador está no mapa (distância). É o que preenche o silêncio e cria a atmosfera do jogo.",
+                desc: "O PAV compõe ou escolhe músicas que combinam com o clima das fases e cria sons de fundo, como vento ou máquinas. O time de IA/Info faz com que o som mude de volume dependendo de onde o jogador está no mapa (distância). É o que preenche o silêncio e cria a atmosfera do jogo.",
                 reason: "A música certa mexe com o sentimento do jogador e deixa a experiência muito mais imersiva."
             },
             {
                 id: 15,
                 title: "Efeitos Especiais (VFX)",
-                team: "PAV e Código (Info)",
+                team: "Geral (IA/Info/PAV)",
                 type: "all",
                 color: "var(--all-color)",
-                desc: "O pessoal de PAV e Info cria as partículas: fumaça saindo do pé, explosões, faíscas ou brilhos de magia. Esses efeitos não têm física, servem só pra deixar as ações mais 'impactantes' e bonitas visualmente. É o 'tempero' final que faz as lutas e ações parecerem poderosas.",
+                desc: "O pessoal de PAV e IA/Info cria as partículas: fumaça saindo do pé, explosões, faíscas ou brilhos de magia. Esses efeitos não têm física, servem só pra deixar as ações mais 'impactantes' e bonitas visualmente. É o 'tempero' final que faz as lutas e ações parecerem poderosas.",
                 reason: "Sem efeitos, as ações do jogo parecem 'secas', tirando a empolgação de realizar ataques ou ganhar prêmios."
             }
         ]
@@ -155,37 +155,37 @@ const phases = [
             {
                 id: 16,
                 title: "Script de História",
-                team: "Design e Código (Info)",
+                team: "Geral (Cód/Des)",
                 type: "all",
                 color: "var(--all-color)",
-                desc: "O PAV e o Info criam momentos onde o jogo para um pouco pra mostrar um diálogo ou algo quebrando no cenário. São pequenos textos ou cenas que explicam por que o personagem está ali e qual é a missão dele. Isso dá um motivo pro jogador querer chegar até o final da fase.",
+                desc: "O PAV e o time de IA/Info criam momentos onde o jogo para um pouco pra mostrar um diálogo ou algo quebrando no cenário. São pequenos textos ou cenas que explicam por que o personagem está ali e qual é a missão dele. Isso dá um motivo pro jogador querer chegar até o final da fase.",
                 reason: "A história faz o jogador se importar com o personagem e querer ver o que acontece depois."
             },
             {
                 id: 17,
                 title: "Áudio Dinâmico",
-                team: "PAV e Código (Info)",
+                team: "Geral (PAV/IA/Info)",
                 type: "all",
                 color: "var(--all-color)",
-                desc: "O PAV faz a música mudar sozinha: se o bicho pegar, a música fica rápida; se a área estiver limpa, ela volta a ser calma. O Info programa essa transição pra ser suave, sem cortes que estraguem o clima do momento. É um nível a mais de qualidade que mostra que o grupo é dedicado.",
+                desc: "O PAV faz a música mudar sozinha: se o bicho pegar, a música fica rápida; se a área estiver limpa, ela volta a ser calma. O time de IA/Info programa essa transição pra ser suave, sem cortes que estraguem o clima do momento. É um nível a mais de qualidade que mostra que o grupo é dedicado.",
                 reason: "A música reativa manipula a adrenalina do jogador na hora certa do combate."
             },
             {
                 id: 18,
                 title: "IA de Combate em Grupo",
-                team: "Código (IA/Info)",
+                team: "IA/Info",
                 type: "info",
                 color: "var(--info-color)",
-                desc: "A galera de IA faz os inimigos trabalharem juntos: enquanto um atira de longe, o outro tenta cercar o jogador por trás. Eles param de agir sozinhos e começam a ter táticas de equipe pra dificultar a vida de quem está jogando. Isso obriga o jogador a pensar em estratégias e não só sair batendo.",
+                desc: "O time de IA/Info faz os inimigos trabalharem juntos: enquanto um atira de longe, o outro tenta cercar o jogador por trás. Eles param de agir sozinhos e começam a ter táticas de equipe pra dificultar a vida de quem está jogando. Isso obriga o jogador a pensar em estratégias e não só sair batendo.",
                 reason: "Inimigos coordenados criam um desafio muito mais inteligente e satisfatório de vencer."
             },
             {
                 id: 19,
                 title: "Sistema de Evolução (XP)",
-                team: "Mecânica (Info)",
+                team: "IA/Info",
                 type: "info",
                 color: "var(--info-color)",
-                desc: "O Info cria a lógica de coletar itens que aumentam a força ou dão novos poderes pro personagem conforme ele joga. Eles fazem as contas de quanto o jogador precisa evoluir pra conseguir passar de um chefe difícil. A Publicidade confere se esses nomes de poderes são legais e fáceis de entender.",
+                desc: "O time de IA/Info cria a lógica de coletar itens que aumentam a força ou dão novos poderes pro personagem conforme ele joga. Eles fazem as contas de quanto o jogador precisa evoluir pra conseguir passar de um chefe difícil. A Publicidade confere se esses nomes de poderes são legais e fáceis de entender.",
                 reason: "Ganhar coisas novas e ficar mais forte é o que vicia o jogador e faz ele querer continuar."
             },
             {
@@ -205,16 +205,16 @@ const phases = [
             {
                 id: 21,
                 title: "Otimização de Performance",
-                team: "Código (Info) e PAV",
+                team: "Geral (IA/Info/PAV)",
                 type: "all",
                 color: "var(--all-color)",
-                desc: "O Info limpa o código pra tirar coisas inúteis e o PAV diminui o peso das imagens sem perder a qualidade. Eles testam se o jogo abre rápido e se não vai travar no navegador ou esquentar o PC. É garantir que o jogo seja 'leve' pra qualquer um conseguir jogar sem problemas.",
+                desc: "O time de IA/Info limpa o código pra tirar coisas inúteis e o PAV diminui o peso das imagens sem perder a qualidade. Eles testam se o jogo abre rápido e se não vai travar no navegador ou esquentar o PC. É garantir que o jogo seja 'leve' pra qualquer um conseguir jogar sem problemas.",
                 reason: "Ninguém gosta de jogo que fica dando 'lag' ou que demora 10 minutos pra carregar."
             },
             {
                 id: 22,
                 title: "Balanceamento de Dificuldade",
-                team: "Mecânica (Info)",
+                team: "IA/Info",
                 type: "info",
                 color: "var(--info-color)",
                 desc: "A galera joga o próprio jogo várias vezes pra ver se o primeiro boss não está impossível ou se o jogo está fácil demais. Eles mudam os números de dano e vida até achar o ponto certo onde o jogo é difícil, mas justo. É a etapa onde vocês decidem o nível do desafio.",
@@ -232,10 +232,10 @@ const phases = [
             {
                 id: 24,
                 title: "Debugging (Caça aos Bugs)",
-                team: "Geral (Info e IA)",
+                team: "Geral (Testes)",
                 type: "all",
                 color: "var(--all-color)",
-                desc: "Todo mundo do grupo vira 'testador' e tenta quebrar o jogo de todas as formas: pulando onde não deve ou apertando vários botões. O Info anota tudo o que deu errado e vai consertando um por um até o jogo estar liso. É a garantia de que não vai travar na hora da apresentação.",
+                desc: "Todo mundo do grupo vira 'testador' e tenta quebrar o jogo de todas as formas. O time de IA/Info anota tudo o que deu errado e vai consertando um por um até o jogo estar liso. É a garantia de que não vai travar na hora da apresentação.",
                 reason: "Bugs na hora da nota acabam com a moral do grupo, então tem que testar muito."
             },
             {
@@ -273,16 +273,16 @@ const phases = [
             {
                 id: 28,
                 title: "Testes de Compatibilidade",
-                team: "Código (Info)",
+                team: "IA/Info",
                 type: "all",
                 color: "var(--all-color)",
-                desc: "O Info testa o link do jogo em diferentes navegadores (Chrome, Edge) e em outros computadores pra ver se funciona em tudo. O PAV confere se o desenho não ficou esticado ou esquisito em telas de tamanhos diferentes. É a garantia de que o jogo funciona pra todo mundo.",
+                desc: "O pessoal de IA/Info testa o link do jogo em diferentes navegadores e dispositivos. O PAV confere se o desenho não ficou esticado ou esquisito em telas de tamanhos diferentes. É a garantia de que o jogo funciona pra todo mundo.",
                 reason: "Evita aquela surpresa ruim de 'no meu PC funciona, mas no do professor não'."
             },
             {
                 id: 29,
                 title: "Fechamento do Build Final",
-                team: "Código (Info)",
+                team: "IA/Info",
                 type: "info",
                 color: "var(--info-color)",
                 desc: "O grupo decide que não vai mais mexer em nada e gera o arquivo final do jogo. Eles conferem se todos os nomes dos integrantes estão nos créditos e salvam uma cópia segura de tudo. É o momento de 'trancar' o projeto e se preparar pra entrega.",
@@ -375,46 +375,69 @@ function renderRoadmap(filterValue) {
         roadmapContainer.appendChild(phaseEl);
     });
 
-    // Event Listeners para as tags clicáveis
+    // Event Listeners para as tags clicáveis (Mini-Menu)
     const stepTags = document.querySelectorAll('.interactive-tag');
     stepTags.forEach(tag => {
         tag.addEventListener('click', (e) => {
+            e.stopPropagation();
             const stepId = e.target.getAttribute('data-step-id');
             const currentFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
             
-            // Ciclo de categorias
+            // Remover menu anterior se existir
+            const oldMenu = document.querySelector('.tag-menu');
+            if(oldMenu) oldMenu.remove();
+
+            // Criar mini-menu
+            const menu = document.createElement('div');
+            menu.className = 'tag-menu';
+            
             const categories = [
-                { type: 'info', team: 'Info (IA/Cód)', color: 'var(--info-color)' },
+                { type: 'info', team: 'IA/Info', color: 'var(--info-color)' },
                 { type: 'arte', team: 'Arte & Des', color: 'var(--arte-color)' },
                 { type: 'pav', team: 'PAV (Áudio/Víd)', color: 'var(--pav-color)' },
                 { type: 'all', team: 'Geral', color: 'var(--all-color)' }
             ];
-            
-            // Encontrar o step no array global phases
-            let targetStep;
-            phases.forEach(p => {
-                const s = p.steps.find(st => st.id == stepId);
-                if(s) targetStep = s;
+
+            categories.forEach(cat => {
+                const item = document.createElement('button');
+                item.className = 'tag-menu-item';
+                item.style.setProperty('--item-color', cat.color);
+                item.textContent = cat.team;
+                item.onclick = () => {
+                    // Encontrar o step no array global phases
+                    let targetStep;
+                    phases.forEach(p => {
+                        const s = p.steps.find(st => st.id == stepId);
+                        if(s) targetStep = s;
+                    });
+                    
+                    if(targetStep) {
+                        targetStep.type = cat.type;
+                        targetStep.team = cat.team;
+                        targetStep.color = cat.color;
+                        
+                        localStorage.setItem('custom_type_' + stepId, targetStep.type);
+                        localStorage.setItem('custom_team_' + stepId, targetStep.team);
+                        localStorage.setItem('custom_color_' + stepId, targetStep.color);
+                        
+                        renderRoadmap(currentFilter);
+                    }
+                };
+                menu.appendChild(item);
             });
-            
-            if(targetStep) {
-                const currentIndex = categories.findIndex(c => c.type === targetStep.type);
-                const nextIndex = (currentIndex + 1) % categories.length;
-                const nextCat = categories[nextIndex];
-                
-                // Atualizar o objeto
-                targetStep.type = nextCat.type;
-                targetStep.team = nextCat.team;
-                targetStep.color = nextCat.color;
-                
-                // Salvar personalização
-                localStorage.setItem('custom_type_' + stepId, targetStep.type);
-                localStorage.setItem('custom_team_' + stepId, targetStep.team);
-                localStorage.setItem('custom_color_' + stepId, targetStep.color);
-                
-                // Re-renderizar para mover o card se houver filtro ativo
-                renderRoadmap(currentFilter);
-            }
+
+            // Posicionar o menu
+            document.body.appendChild(menu);
+            const rect = tag.getBoundingClientRect();
+            menu.style.top = `${rect.bottom + window.scrollY + 5}px`;
+            menu.style.left = `${rect.left + window.scrollX}px`;
+
+            // Fechar menu ao clicar fora
+            const closeMenu = () => {
+                menu.remove();
+                document.removeEventListener('click', closeMenu);
+            };
+            setTimeout(() => document.addEventListener('click', closeMenu), 10);
         });
     });
 
@@ -531,8 +554,7 @@ function createParticipantRow(nameValue = '', roleValue = []) {
     input.value = nameValue;
 
     const options = [
-        'Programador (Info)',
-        'Especialista IA',
+        'Equipe IA/Info',
         'Design/Animação (Arte)',
         'Áudio/Vídeo (PAV)',
         'Publicidade',

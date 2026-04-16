@@ -480,6 +480,44 @@ footer p { color: var(--text-secondary); }
 .role-checkbox-label:hover { color: #fff; }
 .role-checkbox-label input { cursor: pointer; }
 
+/* --- Mini-Menu de Categorias --- */
+.tag-menu {
+    position: absolute;
+    background: #1a1a2e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 9999;
+    animation: menuFade 0.2s ease-out;
+}
+
+@keyframes menuFade {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tag-menu-item {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1.2rem;
+    text-align: left;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid var(--item-color);
+}
+
+.tag-menu-item:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateX(5px);
+}
+
 @media (max-width: 768px) {
     .filter-container { flex-direction: column; width: 100%; border-radius: 20px; padding: 1rem; }
     .filter-btn { width: 100%; }
