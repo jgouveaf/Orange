@@ -23,18 +23,18 @@ const phases = [
             {
                 id: 3,
                 title: "Guia de Estilo Visual",
-                team: "Arte (PAV)",
-                type: "art",
-                color: "var(--art-color)",
+                team: "Arte",
+                type: "arte",
+                color: "var(--arte-color)",
                 desc: "O pessoal de PAV monta um mural com fotos, cores e desenhos que mostram como o jogo vai ser: se é sombrio, colorido ou pixel art. Eles definem as regras visuais pra que o jogo tenha uma cara única e não pareça um monte de desenhos aleatórios misturados. Isso ajuda o TI a saber como configurar as luzes e cores do jogo no código.",
                 reason: "Garante que o jogo seja bonito e que todas as fases pareçam do mesmo universo."
             },
             {
                 id: 4,
                 title: "Identidade da Marca",
-                team: "Design (Publicidade)",
-                type: "art",
-                color: "var(--art-color)",
+                team: "Design (Arte/Publi)",
+                type: "arte",
+                color: "var(--arte-color)",
                 desc: "A pessoa de Publicidade pensa num nome que chame atenção e numa logo que seja marcante para o projeto. Ela estuda o que a galera da nossa idade gosta de jogar pra ver se o jogo de vocês tem chance de bombar. É o começo de transformar o código e o desenho em um produto que as pessoas queiram baixar.",
                 reason: "Um jogo bom com nome ruim ou sem marca ninguém clica pra ver como é."
             },
@@ -83,17 +83,17 @@ const phases = [
                 id: 9,
                 title: "Efeitos de Som Base",
                 team: "PAV",
-                type: "art",
-                color: "var(--art-color)",
+                type: "pav",
+                color: "var(--pav-color)",
                 desc: "O PAV grava ou procura sons curtos pra cada ação: barulho de tiro, de moeda caindo ou do personagem pulando. O TI coloca esses sounds no código pra que eles toquem exatamente na hora que a ação acontece na tela. Isso dá uma sensação de que o jogo tá 'vivo' e respondendo ao jogador.",
                 reason: "O som ajuda o jogador a entender o que aconteceu sem ele precisar ler nada na tela."
             },
             {
                 id: 10,
                 title: "Desenho da Interface (UI)",
-                team: "Design (Publicidade/PAV)",
-                type: "art",
-                color: "var(--art-color)",
+                team: "Design (Arte)",
+                type: "arte",
+                color: "var(--arte-color)",
                 desc: "A Publicidade e o PAV desenham a barra de vida, o inventário e o menu inicial pra ficarem fáceis de usar. O TI programa pra que, quando o personagem tome dano, a barrinha de vida diminua de verdade na tela. É a camada que explica ao usuário o que está acontecendo com a saúde e os itens dele.",
                 reason: "Se o jogador não souber quanta vida tem ou onde clicar pra começar, ele fica frustrado e fecha o jogo."
             }
@@ -105,9 +105,9 @@ const phases = [
             {
                 id: 11,
                 title: "Criação de Assets Finais",
-                team: "Arte (PAV)",
-                type: "art",
-                color: "var(--art-color)",
+                team: "Arte",
+                type: "arte",
+                color: "var(--arte-color)",
                 desc: "O PAV joga fora os blocos cinzas e coloca os desenhos oficiais, cenários detalhados e personagens coloridos. Eles fazem as texturas e os detalhes que dão personalidade pro jogo, seguindo o estilo definido na Etapa 3. O TI ajuda a importar tudo pra dentro da engine sem deixar o jogo pesado demais.",
                 reason: "É o visual que atrai o jogador e faz ele querer explorar o mundo que vocês criaram."
             },
@@ -123,18 +123,18 @@ const phases = [
             {
                 id: 13,
                 title: "Animações de Personagem",
-                team: "Arte (PAV)",
-                type: "art",
-                color: "var(--art-color)",
+                team: "Animação (Arte)",
+                type: "arte",
+                color: "var(--arte-color)",
                 desc: "O PAV faz os frames do personagem correndo, batendo e caindo pra que tudo pareça fluido e natural. O TI liga esses desenhos ao código pra que, quando você aperta o botão, a animação certa comece na hora. É aqui que o personagem ganha vida e parece que ele realmente está se movendo.",
                 reason: "Animações bem feitas fazem o jogo parecer profissional e não um projeto travado."
             },
             {
                 id: 14,
                 title: "Música e Ambiência",
-                team: "Arte (PAV)",
-                type: "art",
-                color: "var(--art-color)",
+                team: "PAV",
+                type: "pav",
+                color: "var(--pav-color)",
                 desc: "O PAV compõe ou escolhe músicas que combinam com o clima das fases e cria sons de fundo, como vento ou máquinas. O TI faz com que o som mude de volume dependendo de onde o jogador está no mapa (distância). É o que preenche o silêncio e cria a atmosfera do jogo.",
                 reason: "A música certa mexe com o sentimento do jogador e deixa a experiência muito mais imersiva."
             },
@@ -191,9 +191,9 @@ const phases = [
             {
                 id: 20,
                 title: "Revisão de Textos",
-                team: "Design (Publicidade)",
-                type: "art",
-                color: "var(--art-color)",
+                team: "Publicidade (PAV)",
+                type: "pav",
+                color: "var(--pav-color)",
                 desc: "A Publicidade revisa todos os diálogos e nomes de menus pra conferir se não tem erro de português ou gírias erradas. Eles garantem que a história faça sentido e que as instruções de como jogar estejam bem claras. É a etapa de garantir que a comunicação do jogo está perfeita.",
                 reason: "Erro de português ou texto confuso faz o projeto parecer desleixado e mal feito."
             }
@@ -223,9 +223,9 @@ const phases = [
             {
                 id: 23,
                 title: "Pós-Processamento Visual",
-                team: "Arte (PAV)",
-                type: "art",
-                color: "var(--art-color)",
+                team: "Arte",
+                type: "arte",
+                color: "var(--arte-color)",
                 desc: "O PAV passa um 'filtro' no jogo inteiro pra deixar as cores mais bonitas ou o clima mais cinematográfico (tipo luzes e sombras). Eles ajustam o brilho pra que tudo combine perfeitamente com a trilha sonora e com a história. É o toque final de arte que deixa o jogo com cara de profissional.",
                 reason: "Pequenos ajustes de luz podem mudar totalmente a 'vibe' do jogo e deixá-lo muito mais atraente."
             },
@@ -241,9 +241,9 @@ const phases = [
             {
                 id: 25,
                 title: "Mixagem de Áudio Final",
-                team: "Arte (PAV)",
-                type: "art",
-                color: "var(--art-color)",
+                team: "PAV",
+                type: "pav",
+                color: "var(--pav-color)",
                 desc: "O PAV ajusta o volume de tudo: a música não pode ser mais alta que o som do tiro, e os efeitos não podem sumir. Eles garantem que todos os áudios tenham a mesma qualidade e que o som não estoure no fone. É o polimento final da parte auditiva do projeto.",
                 reason: "Um som desregulado incomoda o jogador e tira toda a imersão que vocês criaram."
             }
@@ -255,18 +255,18 @@ const phases = [
             {
                 id: 26,
                 title: "Materiais de Divulgação",
-                team: "Design (Publicidade/PAV)",
-                type: "art",
-                color: "var(--art-color)",
+                team: "PAV e Publicidade",
+                type: "pav",
+                color: "var(--pav-color)",
                 desc: "A Publicidade e o PAV gravam as melhores jogadas e editam um trailer curto de 30 segundos com música empolgante. Eles tiram prints das partes mais bonitas do jogo pra usar na capa ou em posts. É o material que vocês vão usar pra 'vender' o peixe de vocês pro pessoal.",
                 reason: "A maioria das pessoas decide se vai jogar um jogo só de olhar as fotos ou o trailer rápido."
             },
             {
                 id: 27,
                 title: "Página do Jogo",
-                team: "Design (Publicidade)",
-                type: "art",
-                color: "var(--art-color)",
+                team: "Publicidade (PAV)",
+                type: "pav",
+                color: "var(--pav-color)",
                 desc: "A Publicidade cria uma página (no GitHub Pages ou Itch.io) com a descrição do jogo e o link pra jogar. Eles escrevem um texto chamativo explicando o projeto e colocando os nomes dos integrantes. É a casa oficial do jogo de vocês na internet.",
                 reason: "Ter um lugar oficial passa muito mais confiança e facilita pras pessoas compartilharem o link."
             },
@@ -313,8 +313,10 @@ function renderRoadmap(filterValue) {
             if (filterValue === 'all') return true;
             // if filter is "ti", show type "ti" and type "all"
             if (filterValue === 'ti' && (step.type === 'ti' || step.type === 'all')) return true;
-            // if filter is "art", show type "art" and type "all"
-            if (filterValue === 'art' && (step.type === 'art' || step.type === 'all')) return true;
+            // se o filtro for "arte", mostra type "arte" e type "all"
+            if (filterValue === 'arte' && (step.type === 'arte' || step.type === 'all')) return true;
+            // se o filtro for "pav", mostra type "pav" e type "all"
+            if (filterValue === 'pav' && (step.type === 'pav' || step.type === 'all')) return true;
             return false;
         });
 
@@ -473,8 +475,9 @@ function createParticipantRow(nameValue = '', roleValue = 'Programador (TI/IA)')
     
     const options = [
         'Programador (TI/IA)',
-        'Artista (PAV)',
-        'Publicitário/Design',
+        'Design/Animação (Arte)',
+        'Áudio/Vídeo (PAV)',
+        'Publicidade',
         'Outro'
     ];
     
