@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apresentação: PROJETO ORANGE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050505;
+            --primary: #ff8c00;
+            --secondary: #00d2ff;
+            --accent: #ff007b;
+            --text: #ffffff;
+            --text-dim: #b0b0b0;
+            --glass: rgba(255, 255, 255, 0.05);
+            --transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .aura {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            z-index: -1;
+            animation: move 20s infinite alternate;
+        }
+
+        @keyframes move {
+            from { transform: translate(-10%, -10%); }
+            to { transform: translate(110%, 110%); }
+        }
+
+        .presentation-container {
+            height: 100vh;
+            display: flex;
+            transition: transform var(--transition);
+        }
+
+        .slide {
+            min-width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem;
+            text-align: center;
+            opacity: 0.3;
+            transform: scale(0.95);
+            transition: all var(--transition);
+            position: relative;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        h1 {
+            font-size: 8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            line-height: 0.9;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--primary), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        p {
+            font-size: 1.4rem;
+            max-width: 900px;
+            line-height: 1.5;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .example-box {
+            background: rgba(255, 140, 0, 0.1);
+            border-left: 5px solid var(--primary);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: left;
+            border-radius: 0 15px 15px 0;
+            width: 80%;
+        }
+
+        .example-box span {
+            color: var(--primary);
+            font-weight: 900;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+
+        /* Simulated Web View (Mockup/Print) */
+        .mockup-frame {
+            background: #111;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            width: 80%;
+            height: 400px;
+            margin-top: 2rem;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .mockup-header {
+            height: 30px;
+            background: #222;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 5px;
+        }
+
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #444; }
+
+        .mockup-content {
+            padding: 20px;
+            height: calc(100% - 30px);
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: left;
+        }
+
+        /* Mockup elements */
+        .m-card { background: #1a1a1a; padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary); }
+        .m-bar { height: 10px; background: #333; border-radius: 5px; margin-top: 10px; position: relative; }
+        .m-fill { height: 100%; background: var(--primary); width: 60%; border-radius: 5px; }
+        .m-tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; background: var(--primary); color: white; margin-bottom: 5px; }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: var(--glass);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+
+        .nav-btn:hover { background: var(--primary); border-color: var(--primary); }
+
+        .progress-bar { width: 200px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+        .progress-inner { height: 100%; background: var(--primary); width: 0%; transition: 0.4s; }
+
+        #slide-index {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text-dim);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="aura"></div>
+    <div id="slide-index">01 / 08</div>
+
+    <div class="presentation-container" id="container">
+        
+        <!-- SLIDE 1: CAPA -->
+        <section class="slide active">
+            <h1>PROJETO<br>ORANGE</h1>
+            <p>Guia de Uso do Dashboard de Desenvolvimento</p>
+        </section>
+
+        <!-- SLIDE 2: O QUE É O SITE? -->
+        <section class="slide">
+            <h2>O que é o Dashboard?</h2>
+            <p>É uma plataforma web interativa para gerenciar todas as etapas da criação do nosso jogo. Ele substitui anotações de papel e mantém o time todo na mesma página.</p>
+            <div class="example-box">
+                <span>EXEMPLO</span>
+                Se o pessoal de Artes terminar um desenho, eles marcam no site e o pessoal de Programação fica sabendo na hora.
+            </div>
+        </section>
+
+        <!-- SLIDE 3: O ROADMAP (PRINT) -->
+        <section class="slide">
+            <h2>Roadmap: O Caminho</h2>
+            <p>Tudo o que precisamos fazer está dividido em 30 etapas. O Roadmap organiza essas tarefas em ordem cronológica.</p>
+            
+            <div class="mockup-frame">
+                <div class="mockup-header"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+                <div class="mockup-content">
+                    <div style="display: flex; gap: 10px;">
+                        <div style="background:var(--primary); padding:10px 20px; border-radius:10px;">IA/Info</div>
+                        <div style="background:#222; padding:10px 20px; border-radius:10px;">Arte</div>
+                        <div style="background:#222; padding:10px 20px; border-radius:10px;">PAV</div>
+                    </div>
+                    <div class="m-card">
+                        <div class="m-tag">IA/Info</div>
+                        <div style="font-size: 1rem; font-weight: bold;">Configuração do Repositório</div>
+                        <div class="m-bar"><div class="m-fill"></div></div>
+                    </div>
+                    <div class="m-card" style="border-color: var(--accent); opacity: 0.5;">
+                        <div class="m-tag" style="background: var(--accent);">Arte</div>
+                        <div style="font-size: 1rem;">Criação de Assets Finais</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 4: TROCA DE CATEGORIA -->
+        <section class="slide">
+            <h2>Troca de Categoria (Menu)</h2>
+            <p>Ao clicar na etiqueta de qualquer etapa, um mini-menu se abre. Isso permite que a gente mude o responsável pela tarefa instantaneamente.</p>
+            <div class="example-box">
+                <span>EXEMPLO</span>
+                Mudamos de ideia e o "Efeito de Som" não é mais PAV, mas sim Geral? Clique na etiqueta e escolha **Geral**.
+            </div>
+            <div style="background: var(--glass); padding: 1rem 2rem; border-radius: 12px; border: 1px solid var(--primary);">
+                💡 As cores do card mudam sozinhas para combinar com a nova área!
+            </div>
+        </section>
+
+        <!-- SLIDE 5: BARRA DE PROGRESSO -->
+        <section class="slide">
+            <h2>Controle de Progresso</h2>
+            <p>Cada tarefa tem sua própria barra de progresso. Isso ajuda a saber se estamos no começo ou quase terminando uma fase.</p>
+            <div class="mockup-frame" style="height: 250px; width: 60%;">
+                <div class="mockup-content" style="justify-content: center; align-items: center;">
+                    <div style="font-size: 1.5rem; color: var(--primary);">Progresso: 85%</div>
+                    <div class="m-bar" style="width: 80%; height: 20px;"><div class="m-fill" style="width: 85%;"></div></div>
+                </div>
+            </div>
+            <div class="example-box">
+                <span>EXEMPLO</span>
+                Se terminarmos o Script de História, levamos o slider até 100%. O card ficará marcado como **Concluído**.
+            </div>
+        </section>
+
+        <!-- SLIDE 6: HUB DO PROJETO (PRINT) -->
+        <section class="slide">
+            <h2>Hub: Mesa da Equipe</h2>
+            <p>Aqui guardamos toda a documentação que não é roadmap: nomes, ideias, regras do jogo e links.</p>
+            <div class="mockup-frame">
+                <div class="mockup-header"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+                <div class="mockup-content">
+                    <div style="font-weight: bold; font-size: 1.2rem;">📋 Mesa da Equipe</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div style="background:#1a1a1a; padding:10px; border-radius:8px;">Membro: João<br>Área: IA/Info, PAV</div>
+                        <div style="background:#1a1a1a; padding:10px; border-radius:8px;">Membro: Maria<br>Área: Arte</div>
+                    </div>
+                    <div style="background:#1a1a1a; padding:10px; border-radius:8px; flex: 1;"><strong>Ideias:</strong> Jogo plataforma com gravidade zero...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 7: SALVAMENTO AUTOMÁTICO -->
+        <section class="slide">
+            <h2>Tudo Salvo!</h2>
+            <p>O Dashboard usa o LocalStorage do seu navegador. Isso significa que você nunca perde nada.</p>
+            <div class="example-box">
+                <span>EXEMPLO</span>
+                Você sai do site para almoçar, desliga o computador e, quando volta amanhã, todas as barras e participantes continuam lá.
+            </div>
+            <p style="font-size: 1rem; font-style: italic;">O único requisito é usar o mesmo computador e navegador!</p>
+        </section>
+
+        <!-- SLIDE 8: CONCLUSÃO -->
+        <section class="slide">
+            <h1>PROJETO ORANGE</h1>
+            <p>Agora você é um mestre no uso do nosso site.</p>
+            <div style="margin-top: 3rem; font-size: 2rem; color: var(--primary); font-weight: bold; border-top: 2px solid var(--primary); padding-top: 1rem;">
+                BOA SORTE NA PRODUÇÃO! 🍊
+            </div>
+        </section>
+
+    </div>
+
+    <div class="controls">
+        <button class="nav-btn" id="prev">←</button>
+        <div class="progress-bar">
+            <div class="progress-inner" id="progress"></div>
+        </div>
+        <button class="nav-btn" id="next">→</button>
+    </div>
+
+    <script>
+        const container = document.getElementById('container');
+        const slides = document.querySelectorAll('.slide');
+        const nextBtn = document.getElementById('next');
+        const prevBtn = document.getElementById('prev');
+        const progress = document.getElementById('progress');
+        const slideIdxDisplay = document.getElementById('slide-index');
+
+        let currentSlide = 0;
+
+        function updateSlide() {
+            container.style.transform = `translateX(-${currentSlide * 100}vw)`;
+            
+            slides.forEach((slide, index) => {
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            const percent = (currentSlide / (slides.length - 1)) * 100;
+            progress.style.width = `${percent}%`;
+            
+            slideIdxDisplay.textContent = `${(currentSlide + 1).toString().padStart(2, '0')} / ${slides.length.toString().padStart(2, '0')}`;
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') nextBtn.click();
+            if (e.key === 'ArrowLeft') prevBtn.click();
+        });
+
+        updateSlide();
+    </script>
+</body>
+</html>

@@ -472,10 +472,95 @@ filterBtns.forEach(btn => {
         filterBtns.forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
         
-        const filter = e.target.getAttribute('data-filter');
         renderRoadmap(filter);
     });
 });
+
+// --- CLOUD SYNC LOGIC ---
+const cloudUploadBtn = document.getElementById('cloud-upload-btn');
+const cloudDownloadBtn = document.getElementById('cloud-download-btn');
+const syncCodeInput = document.getElementById('sync-code-input');
+const syncCodeDisplay = document.getElementById('sync-code-display');
+const syncCodeValue = document.getElementById('sync-code-value');
+const cloudStatus = document.getElementById('cloud-status');
+
+async function uploadToCloud() {
+    cloudStatus.textContent = 'Enviando para a nuvem...';
+    cloudUploadBtn.disabled = true;
+
+    // Coletar TUDO que está no localStorage relacionado ao projeto
+    const projectData = {};
+    for(let i=0; i<localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if(key.startsWith('progress_') || 
+           key.startsWith('custom_') || 
+           key.startsWith('hub-') || 
+           key === 'hub-participants' || 
+           key === 'hub-ideas') {
+            projectData[key] = localStorage.getItem(key);
+        }
+    }
+
+    try {
+        const response = await fetch('https://jsonblob.com/api/jsonBlob', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(projectData)
+        });
+
+        if(response.ok) {
+            const location = response.headers.get('Location');
+            const id = location.split('/').pop();
+            
+            syncCodeValue.textContent = id;
+            syncCodeDisplay.style.display = 'flex';
+            cloudStatus.textContent = '✅ Sucesso! Código gerado.';
+        } else {
+            throw new Error('Erro ao salvar');
+        }
+    } catch (error) {
+        cloudStatus.textContent = '❌ Erro ao conectar com o servidor.';
+        console.error(error);
+    } finally {
+        cloudUploadBtn.disabled = false;
+    }
+}
+
+async function downloadFromCloud() {
+    const id = syncCodeInput.value.trim();
+    if(!id) {
+        cloudStatus.textContent = '⚠️ Insira um código de sincronia.';
+        return;
+    }
+
+    cloudStatus.textContent = 'Baixando dados...';
+    cloudDownloadBtn.disabled = true;
+
+    try {
+        const response = await fetch(`https://jsonblob.com/api/jsonBlob/${id}`);
+        if(response.ok) {
+            const data = await response.json();
+            
+            // Salvar tudo no localStorage
+            Object.keys(data).forEach(key => {
+                localStorage.setItem(key, data[key]);
+            });
+
+            cloudStatus.textContent = '✅ Dados carregados! Recarregando página...';
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            cloudStatus.textContent = '❌ Código inválido ou expirado.';
+        }
+    } catch (error) {
+        cloudStatus.textContent = '❌ Erro ao baixar dados.';
+        console.error(error);
+    } finally {
+        cloudDownloadBtn.disabled = false;
+    }
+}
+
+cloudUploadBtn.addEventListener('click', uploadToCloud);
+cloudDownloadBtn.addEventListener('click', downloadFromCloud);
 
 // Animação super rápida no scroll
 const observer = new IntersectionObserver((entries) => {

@@ -102,8 +102,28 @@
                 </div>
 
                 <div class="hub-actions">
-                    <button id="hub-save-btn" class="hub-btn-primary">💾 Salvar Alterações</button>
+                    <button id="hub-save-btn" class="hub-btn-primary">💾 Salvar Localmente</button>
                     <span id="save-status" class="save-status">Salvo!</span>
+                </div>
+
+                <div class="hub-cloud-sync">
+                    <h3>☁️ Sincronização entre Computadores</h3>
+                    <p>Use esta área para levar seus dados para outro PC.</p>
+                    <div class="cloud-controls">
+                        <div class="cloud-group">
+                            <button id="cloud-upload-btn" class="hub-btn-secondary">Gerar Código de Sincronia</button>
+                            <div id="sync-code-display" class="sync-code-box" style="display: none;">
+                                <span>Seu código:</span>
+                                <strong id="sync-code-value">---</strong>
+                                <small>Anote este código para usar em outro PC!</small>
+                            </div>
+                        </div>
+                        <div class="cloud-group">
+                            <input type="text" id="sync-code-input" class="hub-input" placeholder="Cole o código aqui...">
+                            <button id="cloud-download-btn" class="hub-btn-secondary">Carregar Dados da Nuvem</button>
+                        </div>
+                    </div>
+                    <div id="cloud-status" class="cloud-status"></div>
                 </div>
             </div>
         </div>
