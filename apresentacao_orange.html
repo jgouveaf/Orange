@@ -182,136 +182,121 @@
             color: var(--text-dim);
         }
 
-        .sync-grid {
+        .sync-list {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            gap: 1rem;
             margin-top: 2rem;
             width: 100%;
-            max-width: 1000px;
+            max-width: 900px;
         }
 
-        .sync-card {
+        .sync-item {
             background: var(--glass);
-            border: 1px solid var(--secondary);
-            padding: 2rem;
-            border-radius: 20px;
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
             text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .sync-card h3 { color: var(--secondary); margin-bottom: 1rem; text-transform: uppercase; border-bottom: 1px solid var(--secondary); display: inline-block; padding-bottom: 5px; }
+        .sync-item span { font-size: 2rem; }
+        .sync-item strong { color: var(--secondary); font-size: 1.2rem; }
 
     </style>
 </head>
 <body>
     <div class="aura"></div>
-    <div id="slide-index">01 / 09</div>
+    <div id="slide-index">01 / 10</div>
 
     <div class="presentation-container" id="container">
         
         <!-- SLIDE 1: CAPA -->
         <section class="slide active">
             <h1>PROJETO<br>ORANGE</h1>
-            <p>Guia de Uso: Dashboard e Sincronização ☁️</p>
+            <p>Apresentação Técnica e Manual de Sincronia ☁️</p>
         </section>
 
-        <!-- SLIDE 2: O QUE É O SITE? -->
+        <!-- SLIDE 2: ROADMAP -->
         <section class="slide">
-            <h2>Gestão Centralizada</h2>
-            <p>O Dashboard organiza a produção do nosso jogo em um só lugar, permitindo que cada área acompanhe o progresso em tempo real.</p>
+            <h2>Roadmap e Progressos</h2>
+            <p>O coração do projeto: 30 etapas onde você controla a porcentagem de cada entrega.</p>
             <div class="example-box">
                 <span>EXEMPLO</span>
-                Mudou algo na mecânica? O pessoal de IA/Info atualiza o Hub e todo o time vê a mudança no próximo acesso.
+                Mudamos os "Assets de Arte" de 20% para 100%? O card acende e o projeto avança visualmente.
             </div>
         </section>
 
-        <!-- SLIDE 3: O ROADMAP (PRINT) -->
+        <!-- SLIDE 3: O HUB -->
         <section class="slide">
-            <h2>Roadmap: 30 Etapas</h2>
-            <p>Das ideias iniciais ao lançamento, cada passo está mapeado para garantir que nada seja esquecido.</p>
-            <div class="mockup-frame">
-                <div class="mockup-header"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-                <div class="mockup-content">
-                    <div style="display: flex; gap: 10px;">
-                        <div style="background:var(--primary); padding:10px 20px; border-radius:10px; font-size:0.8rem">IA/Info</div>
-                        <div style="background:#222; padding:10px 20px; border-radius:10px; font-size:0.8rem">Arte</div>
-                    </div>
-                    <div class="m-card">
-                        <div class="m-tag">IA/Info</div>
-                        <div style="font-size: 0.9rem; font-weight: bold;">IA de Combate em Grupo</div>
-                        <div style="height:8px; background:#333; border-radius:4px; margin-top:8px;"><div style="width:70%; height:100%; background:var(--primary); border-radius:4px;"></div></div>
-                    </div>
-                </div>
+            <h2>Hub do Projeto</h2>
+            <p>Onde a mágica acontece. Aqui o time documenta a "alma" do jogo.</p>
+            <p><strong>Campos principais:</strong> Mecânicas, Design, Links e a lista de Integrantes.</p>
+        </section>
+
+        <!-- SLIDE 4: O QUE É SALVO? -->
+        <section class="slide">
+            <h2>Sincronia: O que viaja?</h2>
+            <p>Absolutamente tudo o que você preenche é capturado no salvamento por código:</p>
+            <div class="sync-list">
+                <div class="sync-item"><span>👥</span> <strong>Nomes e Cargos</strong></div>
+                <div class="sync-item"><span>📊</span> <strong>Porcentagens de Etapas</strong></div>
+                <div class="sync-item"><span>🔗</span> <strong>Links e Ideias</strong></div>
+                <div class="sync-item"><span>🎨</span> <strong>Cores dos Cards</strong></div>
             </div>
         </section>
 
-        <!-- SLIDE 4: CUSTOMIZAÇÃO DINÂMICA -->
+        <!-- SLIDE 5: PASSO A PASSO (PC 1) -->
         <section class="slide">
-            <h2>Flexibilidade Total</h2>
-            <p>Clique em qualquer etiqueta de área (IA/Info, Arte, PAV) para abrir o **Mini-Menu** e reatribuir a tarefa.</p>
+            <h2>Passo a Passo: No PC Principal</h2>
             <div class="example-box">
-                <span>EXEMPLO</span>
-                Se uma tarefa de "Criação de Logo" for movida de Arte para PAV, as cores e filtros se ajustam automaticamente.
+                <span>1. SALVAR LOCALMENTE</span>
+                Clique em **"Salvar Localmente"** no Hub. Isso garante que os nomes e links entrem na memória do navegador.
             </div>
-        </section>
-
-        <!-- SLIDE 5: BARRA DE PROGRESSO -->
-        <section class="slide">
-            <h2>Status em 100%</h2>
-            <p>Cada tarefa finalizada acende o card com um brilho neon, indicando que a missão foi cumprida.</p>
             <div class="example-box">
-                <span>EXEMPLO</span>
-                Ao terminar o trailer, o pessoal de PAV puxa o slider até 100%. O status muda para **"CONCLUÍDO"**.
+                <span>2. GERAR CÓDIGO</span>
+                Clique em **"Gerar Código de Sincronia"**. O site vai criar uma chave única na nuvem com todos os seus dados.
             </div>
         </section>
 
-        <!-- SLIDE 6: HUB DO PROJETO -->
+        <!-- SLIDE 6: PASSO A PASSO (PC 2) -->
         <section class="slide">
-            <h2>Hub: Mesa da Equipe</h2>
-            <p>Local de documentação profunda (Ideias, Mecânicas, Design e Links).</p>
-            <div class="mockup-frame" style="height: 300px;">
-                <div class="mockup-content">
-                    <div style="font-size: 1rem; border: 1px dashed #444; padding: 15px; border-radius: 10px;">
-                        <strong>Links Importantes:</strong><br>
-                        - drive.google.com/orange-assets<br>
-                        - github.com/equipe-orange
-                    </div>
+            <h2>Passo a Passo: No outro PC</h2>
+            <div class="example-box">
+                <span>3. CARREGAR</span>
+                Abra o site, cole o código no campo indicado e clique em **"Baixar da Nuvem"**.
+            </div>
+            <p style="margin-top: 1.5rem; color: var(--secondary); font-weight: bold;">O site dará F5 e tudo aparecerá magicamente!</p>
+        </section>
+
+        <!-- SLIDE 7: FALHA DE REDE? -->
+        <section class="slide">
+            <h2>E se a internet falhar?</h2>
+            <p>Algumas redes podem bloquear o acesso à nuvem. Para isso, criamos o **Plano B**.</p>
+            <div class="sync-item" style="border: 2px solid var(--primary); background: rgba(255,140,0,0.1); width: 80%; margin-top: 2rem;">
+                <span>💾</span>
+                <div>
+                    <strong>Backup por Arquivo</strong><br>
+                    Baixe o arquivo .json, coloque no pen-drive ou mande por WhatsApp. É 100% garantido.
                 </div>
             </div>
         </section>
 
-        <!-- SLIDE 7: SALVAMENTO AUTOMÁTICO -->
+        <!-- SLIDE 8: EQUIPE MULTIDISCIPLINAR -->
         <section class="slide">
-            <h2>Onde fica salvo?</h2>
-            <p>O site salva tudo localmente no seu computador. Mas e se você for para outro PC?</p>
-            <p style="color: var(--primary); font-weight: bold; font-size: 1.8rem; margin-top: 2rem;">Apresentamos: A Sincronização ☁️</p>
-        </section>
-
-        <!-- SLIDE 8: SINCRONIA: OPÇÃO A E B -->
-        <section class="slide">
-            <h2>Leve seus dados com você</h2>
-            <p>No Hub, você tem duas opções para levar o projeto para outro computador:</p>
-            
-            <div class="sync-grid">
-                <div class="sync-card">
-                    <h3>Opção A: Nuvem</h3>
-                    <p style="font-size: 1.1rem">Gere um **Código Único**. No outro PC, basta colar o código e clicar em "Baixar da Nuvem".</p>
-                    <small>Dica: Anote o código ou tire foto!</small>
-                </div>
-                <div class="sync-card">
-                    <h3>Opção B: Arquivo</h3>
-                    <p style="font-size: 1.1rem">Baixe um **Arquivo .JSON**. Envie por WhatsApp ou Pen-drive para outro PC e abra-o no site.</p>
-                    <small>Failsafe: Funciona 100% das vezes.</small>
-                </div>
-            </div>
+            <h2>Gestão de Equipe (IA/Info)</h2>
+            <p>Reforçamos que a equipe de **IA/Info** agora engloba toda a programação e inteligência técnica do jogo.</p>
+            <p style="font-size: 1.1rem">No Hub, você pode marcar que um integrante faz parte de várias áreas ao mesmo tempo.</p>
         </section>
 
         <!-- SLIDE 9: CONCLUSÃO -->
         <section class="slide">
-            <h1>PROJETO ORANGE</h1>
-            <p>Organização Profissional. Sucesso Garantido.</p>
+            <h1>PRONTOS!</h1>
+            <p>O Projeto Orange está mais organizado do que nunca.</p>
             <div style="margin-top: 3rem; font-size: 2rem; color: var(--primary); font-weight: bold; border-top: 2px solid var(--primary); padding-top: 1rem;">
-                Mãos à obra, equipe! 🍊
+                BOA SORTE NA APRESENTAÇÃO! 🍊🚀
             </div>
         </section>
 

@@ -471,10 +471,28 @@ filterBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
         filterBtns.forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
-        
-        renderRoadmap(filter);
+        const filterValue = e.target.getAttribute('data-filter');
+        renderRoadmap(filterValue);
     });
 });
+
+// Helper para coletar todos os dados do localStorage (usado no backup)
+function getProjectData() {
+    const projectData = {};
+    for(let i=0; i<localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if(key.startsWith('progress_') || key.startsWith('custom_') || key.startsWith('hub-')) {
+            projectData[key] = localStorage.getItem(key);
+        }
+    }
+    return projectData;
+}
+
+// Inicializar tudo ao carregar
+applyStepCustomizations();
+renderRoadmap('all');
+loadHubData(); 
+initCloudSync(); // Ativa os botões de nuvem e backup
 
 // --- CLOUD SYNC LOGIC ---
 function initCloudSync() {
