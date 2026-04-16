@@ -494,13 +494,18 @@ function initCloudSync() {
         const projectData = {};
         for(let i=0; i<localStorage.length; i++) {
             const key = localStorage.key(i);
+            // Captura progressos, customizações e TUDO que começa com hub (nomes, ideias, links, etc)
             if(key.startsWith('progress_') || key.startsWith('custom_') || key.startsWith('hub-')) {
                 projectData[key] = localStorage.getItem(key);
             }
         }
 
+        if (Object.keys(projectData).length === 0) {
+            cloudStatus.textContent = '⚠️ Nada para salvar! Preencha algo primeiro.';
+            return;
+        }
+
         try {
-            // Trocando para o JSONBin que funciona melhor com GitHub Pages
             const response = await fetch('https://api.jsonbin.io/v3/b', {
                 method: 'POST',
                 headers: { 
@@ -512,12 +517,12 @@ function initCloudSync() {
 
             if(response.ok) {
                 const result = await response.json();
-                const id = result.metadata.id; // JSONBin retorna o ID no corpo da resposta
+                const id = result.metadata.id; 
                 syncCodeValue.textContent = id;
                 syncCodeDisplay.style.display = 'flex';
                 cloudStatus.textContent = '✅ Sucesso! Código gerado.';
             } else {
-                cloudStatus.textContent = '❌ Erro no servidor. Use a Opção B (Arquivo).';
+                cloudStatus.textContent = '❌ Erro no servidor. Use a Opção B.';
             }
         } catch (error) {
             cloudStatus.textContent = '❌ Erro de conexão. Use a Opção B.';
