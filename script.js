@@ -536,11 +536,13 @@ function initCloudSync() {
                 syncCodeValue.textContent = id;
                 syncCodeDisplay.style.display = 'flex';
                 cloudStatus.textContent = '✅ Sucesso! Código gerado.';
+            } else if (response.status >= 500) {
+                cloudStatus.textContent = '❌ Erro no Servidor de Sincronia (Status 500). Use a Opção B.';
             } else {
-                cloudStatus.textContent = '❌ Servidor ocupado. Use a Opção B.';
+                cloudStatus.textContent = '❌ Servidor ocupado ou excedido. Use a Opção B.';
             }
         } catch (error) {
-            cloudStatus.textContent = '❌ Rede bloqueada. Use a Opção B.';
+            cloudStatus.textContent = '❌ Rede bloqueada ou instável. Use a Opção B.';
             console.error(error);
         }
     }
@@ -558,6 +560,8 @@ function initCloudSync() {
                 Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
                 cloudStatus.textContent = '✅ Sincronizado! Recarregando...';
                 setTimeout(() => location.reload(), 1000);
+            } else if (response.status >= 500) {
+                cloudStatus.textContent = '❌ Erro no Servidor (500). Tente a Opção B.';
             } else {
                 cloudStatus.textContent = '❌ Código não encontrado.';
             }
