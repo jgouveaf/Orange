@@ -489,10 +489,7 @@ function getProjectData() {
 }
 
 // Inicializar tudo ao carregar
-applyStepCustomizations();
-renderRoadmap('all');
-loadHubData(); 
-initCloudSync(); // Ativa os botões de nuvem e backup
+// O código inicial foi movido para o DOMContentLoaded no final do arquivo.
 
 // --- CLOUD SYNC LOGIC ---
 function initCloudSync() {
@@ -636,9 +633,7 @@ function applyStepCustomizations() {
     });
 }
 
-// Initial Render
-applyStepCustomizations();
-renderRoadmap('all');
+// Initial Render transferidos para o DOMContentLoaded.
 
 /* =========================================
    SISTEMA DE TABS E HUB DO PROJETO
